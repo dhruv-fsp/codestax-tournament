@@ -109,6 +109,7 @@
   /* ---------- round chips (points view) ---------- */
   .rounds { display: flex; gap: 6px; margin-top: 10px; overflow-x: auto; scrollbar-width: none; }
   .rounds::-webkit-scrollbar { display: none; }
+  .rounds[hidden] { display: none; }
   .round {
     flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
     min-width: 128px; padding: 8px 16px 9px; cursor: pointer; text-align: left;
@@ -441,7 +442,6 @@
         <h1>CODE STAX <span>SOLO TOURNAMENT</span></h1>
       </div>
     </div>
-    <div class="stats" id="stats"></div>
   </header>
 
   <nav class="views" id="views" aria-label="View">
@@ -539,30 +539,21 @@ function resultFor(p, n) {
 }
 
 /* ---------- state ---------- */
-let view = store.get("cs-view", "points");
+let view = store.get("cs2-view", "points");
 if (!["points", "slots"].includes(view)) view = "points";
-let tab = store.get("cs-tab", "all");
-if (tab !== "all" && !ORDER.includes(tab)) tab = "all";
-let round = store.get("cs-round", "overall");
+let tab = store.get("cs2-tab", ORDER[0]);
+if (tab !== "all" && !ORDER.includes(tab)) tab = ORDER[0];
+let round = store.get("cs2-round", "overall");
 
+// Each territory: Overall first, then its matches. The combined tab is overall only.
 function roundOptions() {
-  const all = matchesFor(tab, "overall");
-  const totalRounds = roundNumbers(tab).length * (tab === "all" ? ORDER.length : 1);
-  const opts = [{ id: "overall", label: "Overall", sub: `${all.length}/${totalRounds} played`, disabled: !all.length }];
-  for (const n of roundNumbers(tab)) {
-    const ms = matchesFor(tab, String(n));
-    let sub = "Upcoming";
-    if (ms.length) {
-      if (tab === "all") sub = ms.length === ORDER.length ? "All lobbies" : ms.map((m) => m.territory).join(" + ");
-      else sub = [ms[0].map, fmtDate(ms[0].date)].filter(Boolean).join(" · ") || "Played";
-    }
-    opts.push({ id: String(n), label: `Match ${n}`, sub, disabled: !ms.length });
-  }
+  if (tab === "all") return [];
+  const opts = [{ id: "overall", label: "Overall", disabled: !matchesOf(tab).length }];
+  for (const n of roundNumbers(tab)) opts.push({ id: String(n), label: `Match ${n}`, disabled: !matchesFor(tab, String(n)).length });
   return opts;
 }
 function fixRound() {
-  const opts = roundOptions();
-  if (!opts.some((o) => o.id === round && !o.disabled)) round = "overall";
+  if (tab === "all" || !roundOptions().some((o) => o.id === round && !o.disabled)) round = "overall";
 }
 fixRound();
 
@@ -626,9 +617,6 @@ function renderHeader() {
   const dates = uniq(MATCHES.map((m) => m.date).filter(Boolean)).sort();
   const when = dates.length ? (dates.length === 1 ? fmtDate(dates[0], true) : `${fmtDate(dates[0])} – ${fmtDate(dates[dates.length - 1], true)}`) : "";
   $("kicker").textContent = [TOURNAMENT.game, TOURNAMENT.mode, when].filter(Boolean).join(" · ");
-  const total = ORDER.length * MATCHES_PER_TERRITORY;
-  const s = [[DATA.length, "Players"], [ORDER.length, "Territories"], [`${MATCHES.length}/${total}`, "Matches played"], [TOURNAMENT.mode, "Mode"]];
-  $("stats").innerHTML = s.map(([b, l]) => `<div class="stat"><b>${b}</b><span>${l}</span></div>`).join("");
 }
 
 function renderViews() {
@@ -638,27 +626,23 @@ function renderViews() {
 }
 
 function renderTabs() {
-  const tabs = [["all", "ALL", DATA.length], ...ORDER.map((t) => [t, t, byTerritory(t).length])];
-  $("tabs").innerHTML = tabs
-    .map(([k, label, n]) => {
-      let sub = `${n} players`;
-      if (view === "points") {
-        if (k === "all") sub = "Combined";
-        else sub = `${matchesOf(k).length}/${roundNumbers(k).length} played`;
-      }
+  // Territories first, the combined table last
+  $("tabs").innerHTML = [...ORDER, "all"]
+    .map((k) => {
+      const label = k === "all" ? (view === "points" ? "OVERALL" : "ALL") : k;
+      const n = k === "all" ? DATA.length : byTerritory(k).length;
+      const sub = view === "slots" ? `<span class="s">${n} players</span>` : "";
       return `<button class="tab" data-tab="${k}" aria-pressed="${k === tab}" style="--tc:${TC[k]}">
-        <span class="t">${label}</span><span class="s">${sub}</span></button>`;
+        <span class="t">${label}</span>${sub}</button>`;
     })
     .join("");
   const r = $("rounds");
-  r.hidden = view !== "points";
+  const opts = view === "points" ? roundOptions() : [];
+  r.hidden = !opts.length;
   r.style.setProperty("--tc", TC[tab]);
-  if (view === "points") {
-    r.innerHTML = roundOptions()
-      .map((o) => `<button class="round" data-round="${o.id}" aria-pressed="${o.id === round}" ${o.disabled ? "disabled" : ""}>
-        <b>${o.label}</b><small>${esc(o.sub)}</small></button>`)
-      .join("");
-  }
+  r.innerHTML = opts
+    .map((o) => `<button class="round" data-round="${o.id}" aria-pressed="${o.id === round}" ${o.disabled ? "disabled" : ""}><b>${o.label}</b></button>`)
+    .join("");
 }
 
 /* ---------- slot list view ---------- */
@@ -700,7 +684,7 @@ function currentPoints() {
   const players = combined ? DATA : byTerritory(tab);
   const { played, dnp } = standings(players, ms);
   const scope = combined ? "All Territories" : tab;
-  const title = `${scope} · ${overall ? "Overall" : `Match ${round}`}`;
+  const title = combined ? "Overall Standings" : `${scope} · ${overall ? "Overall" : `Match ${round}`}`;
   return {
     ms, played, dnp, overall, combined, scope, title,
     maps: uniq(ms.map((m) => m.map).filter(Boolean)),
@@ -761,19 +745,13 @@ function renderPoints() {
     $("count").textContent = "";
     return;
   }
-  const { played, dnp, overall, rounds, maps, dates } = cur;
+  const { played, dnp, overall, rounds } = cur;
   const q = query();
   const shownPlayed = played.filter((r) => matches(r.p, q));
   const shownDnp = dnp.filter((r) => matches(r.p, q));
-  const scopeHtml = cur.combined ? "All Territories" : tab;
-  const chips = [
-    ...(!overall ? maps.map((m) => `<span class="chip">${esc(m)}</span>`) : []),
-    ...dates.map((d) => `<span class="chip soft">${fmtDate(d)}</span>`),
-  ].join("");
-
+  const heading = cur.combined ? "Overall" : `${tab}<em> · ${overall ? "Overall" : `Match ${round}`}</em>`;
   let html = `<section class="group" style="--tc:${TC[tab]}">
-    <div class="ghead"><span class="stripe"></span><h2>${scopeHtml}<em> · ${overall ? "Overall" : `Match ${round}`}</em></h2>${chips}<span class="rule"></span></div>
-    <div class="msub"><b>${played.length}</b> played · <b>${dnp.length}</b> did not play</div>`;
+    <div class="ghead"><span class="stripe"></span><h2>${heading}</h2><span class="rule"></span></div>`;
 
   if (!q && played.length >= 3) html += `<div class="podium">${[played[1], played[0], played[2]].map((r) => pod(r, cur)).join("")}</div>`;
 
@@ -794,9 +772,6 @@ function renderPoints() {
       ${[["#1", 10], ["#2", 6], ["#3", 5], ["#4", 4], ["#5", 3], ["#6", 2], ["#7–8", 1], ["#9+", 0], ["Finish", "+1"]]
         .map(([k, v]) => `<span class="lg">${k}<b>${v}</b></span>`).join("")}
     </div>
-    <div class="note">BGMI points system. ${PLACE_AMONG_REGISTERED ? "Placement is counted among registered players only." : "Placement is the in-game finish position."}
-      Ties go to placement points, then finishes, then the best placement (#3 beats #10).
-      ${overall ? "M1 / M2 show points with the in-game place underneath." : ""}</div>
   </section>`;
 
   $("out").innerHTML = html;
@@ -1122,16 +1097,18 @@ $("views").addEventListener("click", (e) => {
   const b = e.target.closest(".view");
   if (!b || b.dataset.view === view) return;
   view = b.dataset.view;
-  store.set("cs-view", view);
+  store.set("cs2-view", view);
   renderAll();
 });
 
 $("tabs").addEventListener("click", (e) => {
   const b = e.target.closest(".tab");
   if (!b) return;
+  if (b.dataset.tab !== tab) round = "overall";  // a territory always opens on its Overall
   tab = b.dataset.tab;
-  store.set("cs-tab", tab);
+  store.set("cs2-tab", tab);
   fixRound();
+  store.set("cs2-round", round);
   renderAll();
 });
 
@@ -1139,7 +1116,7 @@ $("rounds").addEventListener("click", (e) => {
   const b = e.target.closest(".round");
   if (!b || b.disabled) return;
   round = b.dataset.round;
-  store.set("cs-round", round);
+  store.set("cs2-round", round);
   renderAll();
 });
 
