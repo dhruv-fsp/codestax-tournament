@@ -1,6 +1,10 @@
-"""Build slot-list/index.html from the player CSVs and match results.
+"""Build the tournament page from the player CSVs and match results.
 
 Run:  python -I slot-list/src/build.py
+
+Writes two pages:
+  index.html         full page with names and phone numbers (local only, gitignored)
+  public/index.html  hosted page with IGNs and results only (committed, served by Vercel)
 
 Inputs (slot-list/data/):
   T13presentlist.csv, T1presentlist.csv  registered players
@@ -22,7 +26,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
 TEMPLATE = Path(__file__).resolve().parent / "template.html"
-OUT = ROOT / "index.html"
+OUT = ROOT / "index.html"                  # full page with names and phones, never committed
+OUT_PUBLIC = ROOT / "public" / "index.html"  # hosted page (Vercel), no personal data
 SOURCES = [("T13", DATA_DIR / "T13presentlist.csv"), ("T1", DATA_DIR / "T1presentlist.csv")]
 
 
@@ -164,13 +169,49 @@ def to_js(obj) -> str:
     return json.dumps(obj, ensure_ascii=False).replace("</", "<\\/")
 
 
+def render(players, matches, public: bool) -> str:
+    html = TEMPLATE.read_text(encoding="utf-8")
+    return (html.replace("/*DATA*/", to_js(players))
+                .replace("/*MATCHES*/", to_js(matches))
+                .replace("/*PUBLIC*/false", "true" if public else "false"))
+
+
+def public_view(players, matches):
+    """Only territory, slot and IGN. Player ids become T13-05 style keys."""
+    new_id = {p["id"]: f"{p['territory']}-{p['slot']:02d}" for p in players}
+    pub_players = [{"id": new_id[p["id"]], "territory": p["territory"], "slot": p["slot"], "ign": p["ign"]}
+                   for p in players]
+    pub_matches = [{**m, "results": [{**r, "pid": new_id[r["pid"]]} for r in m["results"]]} for m in matches]
+    return pub_players, pub_matches
+
+
+def check_no_pii(html: str, players) -> None:
+    leaks = []
+    for p in players:
+        for value in (p["phone"], p["agentPhone"], p["id"]):
+            if value and value in html:
+                leaks.append(value)
+        if p["name"] and f'"{p["name"]}"' in html:
+            leaks.append(p["name"])
+    for k in ('"name":', '"phone":', '"agentPhone":', '"agent":'):
+        if k in html:
+            leaks.append(k)
+    if leaks:
+        sys.exit(f"STOP: public build would include player data, e.g. {leaks[:3]}")
+
+
 def main():
     players = load_players()
     matches = load_matches(players)
-    html = TEMPLATE.read_text(encoding="utf-8")
-    html = html.replace("/*DATA*/", to_js(players)).replace("/*MATCHES*/", to_js(matches))
-    OUT.write_text(html, encoding="utf-8")
-    print("wrote", OUT)
+
+    OUT.write_text(render(players, matches, public=False), encoding="utf-8")
+    print("wrote", OUT, "(full, local only)")
+
+    pub_html = render(*public_view(players, matches), public=True)
+    check_no_pii(pub_html, players)
+    OUT_PUBLIC.parent.mkdir(exist_ok=True)
+    OUT_PUBLIC.write_text(pub_html, encoding="utf-8")
+    print("wrote", OUT_PUBLIC, "(public: IGNs and results only, no names or phones)")
 
 
 if __name__ == "__main__":

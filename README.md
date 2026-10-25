@@ -15,6 +15,14 @@ BGMI system: #1 10, #2 6, #3 5, #4 4, #5 3, #6 2, #7–8 1, #9+ 0, plus 1 per fi
 Unregistered players in the lobby are not counted. Placement is the in-game finish position.
 Ties go to WWCDs, then placement points, then finishes, then the latest match placement.
 
+## Hosting on Vercel
+
+`public/index.html` is the hosted page. It has IGNs, slots and results only: no names, phone numbers or agents.
+
+1. In Vercel, **Add New → Project** and import this repo.
+2. Framework preset: **Other**. Leave the build command empty. `vercel.json` already sets the output directory to `public`.
+3. Deploy. Every push to `main` redeploys.
+
 ## Build
 
 Player CSVs are not in this repo because they contain names and phone numbers.
@@ -25,13 +33,18 @@ data/T13presentlist.csv
 data/T1presentlist.csv
 ```
 
-Then build the page:
+Then build:
 
 ```
 python -I src/build.py
 ```
 
-This writes `index.html`. Serve it locally:
+This writes two pages:
+
+- `index.html`: full page with names and phones, for organisers. Local only, gitignored.
+- `public/index.html`: the hosted page. The build stops if any name, phone or user id would end up in it.
+
+Commit and push `public/index.html` to update the live site. Serve the full page locally with:
 
 ```
 python -m http.server 8765 --bind 127.0.0.1

@@ -481,6 +481,8 @@
 <script>
 const DATA = /*DATA*/;
 const MATCHES = /*MATCHES*/;
+// Public build (for hosting): players carry only territory, slot and IGN. No names, phones or agents.
+const PUBLIC = /*PUBLIC*/false;
 const TOURNAMENT = { name: "Code Stax Solo Tournament", game: "BGMI", mode: "Solo" };
 const ORDER = ["T13", "T1"];
 const MATCHES_PER_TERRITORY = 2;
@@ -814,13 +816,14 @@ function openDetail(p) {
       <button class="x" data-close aria-label="Close">${ICON_X}</button>
     </div>
     <div class="fields">
-      ${results.length ? f("Results", results.join("<br>"), true) : ""}
+      ${results.length ? f("Results", results.join("<br>"), true) : PUBLIC ? f("Results", "No matches played yet", true) : ""}
+      ${PUBLIC ? "" : `
       ${f("Name", esc(p.name), true)}
       ${f("Phone", p.phone ? `<a href="tel:${esc(p.phone)}">${esc(p.phone)}</a>` : "")}
       ${f("Age · Gender", [p.age, p.gender].filter(Boolean).map(esc).join(" · "))}
       ${f("Agent", esc(p.agent))}
       ${f("Agent phone", p.agentPhone ? `<a href="tel:${esc(p.agentPhone)}">${esc(p.agentPhone)}</a>` : "")}
-      ${f("Registered", esc(p.registered), true)}
+      ${f("Registered", esc(p.registered), true)}`}
     </div>
     <div class="dact">
       <button class="btn" data-copy="${esc(p.ign)}">Copy IGN</button>
@@ -911,11 +914,11 @@ function pointsJson() {
     placement: PLACE_AMONG_REGISTERED ? "among-registered" : "in-game",
     unregisteredLeftOut: cur.unregistered,
     standings: cur.played.map((r) => ({
-      rank: r.rank, ign: r.p.ign, territory: r.p.territory, slot: r.p.slot, userId: r.p.id,
+      rank: r.rank, ign: r.p.ign, territory: r.p.territory, slot: r.p.slot, ...(PUBLIC ? {} : { userId: r.p.id }),
       ...(cur.overall ? { matches: perRound(r.p), wwcd: r.wwcd } : { place: r.place }),
       placementPoints: r.placePts, finishes: r.kills, total: r.total,
     })),
-    dnp: cur.dnp.map((r) => ({ ign: r.p.ign, territory: r.p.territory, slot: r.p.slot, userId: r.p.id })),
+    dnp: cur.dnp.map((r) => ({ ign: r.p.ign, territory: r.p.territory, slot: r.p.slot, ...(PUBLIC ? {} : { userId: r.p.id }) })),
   };
 }
 
@@ -925,7 +928,7 @@ function slotsJson() {
     territories: ORDER.filter((t) => tab === "all" || t === tab).map((t) => ({
       territory: t,
       mode: TOURNAMENT.mode.toLowerCase(),
-      slots: byTerritory(t).map((p) => ({ slot: p.slot, ign: p.ign, userId: p.id })),
+      slots: byTerritory(t).map((p) => ({ slot: p.slot, ign: p.ign, ...(PUBLIC ? {} : { userId: p.id }) })),
     })),
   };
 }
@@ -1046,15 +1049,17 @@ function pointsExport() {
   const { played, dnp, overall, combined, rounds, unregistered } = cur;
   const lead = (r) => [r.p.ign, ...(combined ? [r.p.territory] : []), r.p.slot];
   const leadHead = ["IGN", ...(combined ? ["Territory"] : []), "Slot"];
-  const who = (p) => [p.name, p.phone];
+  const who = (p) => (PUBLIC ? [] : [p.name, p.phone]);
+  const whoHead = PUBLIC ? [] : ["Name", "Phone"];
+  const whoW = PUBLIC ? [] : [30, 14];
   let header, rows, widths, boldCol;
   if (!overall) {
-    header = ["Rank", ...leadHead, "Place", "Place Pts", "Finishes", "Total", "Name", "Phone"];
+    header = ["Rank", ...leadHead, "Place", "Place Pts", "Finishes", "Total", ...whoHead];
     rows = [
       ...played.map((r) => [r.rank, ...lead(r), r.place, r.placePts, r.kills, r.total, ...who(r.p)]),
       ...dnp.map((r) => ["DNP", ...lead(r), "", "", "", "", ...who(r.p)]),
     ];
-    widths = [7, 24, ...(combined ? [10] : []), 6, 7, 10, 9, 8, 30, 14];
+    widths = [7, 24, ...(combined ? [10] : []), 6, 7, 10, 9, 8, ...whoW];
   } else {
     const per = (p) => rounds.flatMap((n) => {
       const x = resultFor(p, n);
@@ -1062,12 +1067,12 @@ function pointsExport() {
       return [x.state === "dnp" ? "DNP" : "–", "", ""];
     });
     header = ["Rank", ...leadHead, ...rounds.flatMap((n) => [`M${n} Place`, `M${n} Fin`, `M${n} Pts`]),
-      "WWCD", "Place Pts", "Finishes", "Total", "Name", "Phone"];
+      "WWCD", "Place Pts", "Finishes", "Total", ...whoHead];
     rows = [
       ...played.map((r) => [r.rank, ...lead(r), ...per(r.p), r.wwcd, r.placePts, r.kills, r.total, ...who(r.p)]),
       ...dnp.map((r) => ["DNP", ...lead(r), ...per(r.p), "", "", "", "", ...who(r.p)]),
     ];
-    widths = [7, 24, ...(combined ? [10] : []), 6, ...rounds.flatMap(() => [9, 8, 8]), 7, 10, 9, 8, 30, 14];
+    widths = [7, 24, ...(combined ? [10] : []), 6, ...rounds.flatMap(() => [9, 8, 8]), 7, 10, 9, 8, ...whoW];
   }
   boldCol = header.indexOf("Total");
   const note = `${played.length} played · ${dnp.length} did not play · ${unregistered} unregistered left out. ${POINTS_NOTE}`;
@@ -1091,9 +1096,10 @@ function slotsExport() {
       name: `${t} Slots`,
       title: `${t} – Solo Slot List`,
       note: `${byTerritory(t).length} players · slot 1 = earliest registration`,
-      header: ["Slot", "IGN", "Name", "Phone", "Age", "Gender", "Agent", "Agent Phone", "Registered"],
-      rows: byTerritory(t).map((p) => [p.slot, p.ign, p.name, p.phone, Number(p.age) || p.age, p.gender, p.agent, p.agentPhone, p.registered]),
-      widths: [6, 24, 30, 14, 6, 8, 24, 14, 18],
+      header: PUBLIC ? ["Slot", "IGN"] : ["Slot", "IGN", "Name", "Phone", "Age", "Gender", "Agent", "Agent Phone", "Registered"],
+      rows: byTerritory(t).map((p) => PUBLIC ? [p.slot, p.ign]
+        : [p.slot, p.ign, p.name, p.phone, Number(p.age) || p.age, p.gender, p.agent, p.agentPhone, p.registered]),
+      widths: PUBLIC ? [6, 28] : [6, 24, 30, 14, 6, 8, 24, 14, 18],
       boldCol: 1,
     })),
   };

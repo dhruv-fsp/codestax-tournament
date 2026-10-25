@@ -1,0 +1,1195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#090b0e">
+<title>Code Stax Solo Tournament</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Teko:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #090b0e;
+    --panel: #12161b;
+    --panel-2: #191e25;
+    --panel-hi: #212830;
+    --line: #252c35;
+    --text: #eef1f4;
+    --muted: #8a95a3;
+    --dim: #59636f;
+    --accent: #f6b800;
+    --accent-ink: #1a1300;
+    --t13: #3cc3ff;
+    --t1: #ff7b3d;
+    --gold: #f6b800;
+    --silver: #c9d3dd;
+    --bronze: #d88a4e;
+    --excel: #2fbf71;
+    --num: "Teko", "Barlow Condensed", Impact, sans-serif;
+    --ui: "Barlow Condensed", "Segoe UI", system-ui, "Noto Sans", "Microsoft YaHei", "Segoe UI Symbol", sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(1100px 420px at 50% -160px, rgba(246, 184, 0, .11), transparent 70%),
+      var(--bg);
+    color: var(--text);
+    font: 500 16px/1.35 var(--ui);
+    letter-spacing: .01em;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: linear-gradient(#000, transparent 65%);
+            mask-image: linear-gradient(#000, transparent 65%);
+  }
+  button { font: inherit; color: inherit; }
+  .wrap { position: relative; max-width: 1180px; margin: 0 auto; padding: 28px 20px 80px; }
+
+  /* ---------- header ---------- */
+  .top {
+    display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; flex-wrap: wrap;
+    padding-bottom: 20px; border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .logo { width: 48px; height: 48px; color: var(--accent); flex: none; }
+  .kicker { font-size: 13px; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; color: var(--accent); }
+  h1 { margin: 2px 0 0; font: 600 46px/.85 var(--num); letter-spacing: .03em; padding-top: 6px; }
+  h1 span { color: var(--accent); }
+  .stats { display: flex; gap: 8px; flex-wrap: wrap; }
+  .stat {
+    background: var(--panel); padding: 9px 16px 8px; min-width: 92px;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+  }
+  .stat b { display: block; font: 500 30px/.9 var(--num); padding-top: 4px; }
+  .stat span { font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+
+  /* ---------- view switch ---------- */
+  .views { display: flex; gap: 30px; margin-top: -1px; }
+  .view {
+    position: relative; background: none; border: 0; cursor: pointer;
+    padding: 18px 0 4px; font: 600 27px/.8 var(--num); letter-spacing: .05em; text-transform: uppercase;
+    color: var(--dim); transition: color .15s;
+  }
+  .view:hover { color: var(--muted); }
+  .view::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px;
+    background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .2s;
+  }
+  .view[aria-pressed="true"] { color: var(--text); }
+  .view[aria-pressed="true"]::after { transform: scaleX(1); }
+
+  /* ---------- territory tabs ---------- */
+  .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+  .tab {
+    position: relative; text-align: left; cursor: pointer; border: 0;
+    background: var(--panel); color: var(--muted);
+    padding: 12px 18px 14px;
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+    transition: background .15s;
+  }
+  .tab:hover { background: var(--panel-2); }
+  .tab .t { display: block; font: 600 36px/.85 var(--num); padding-top: 6px; color: var(--text); letter-spacing: .03em; white-space: nowrap; }
+  .tab .s { font-size: 13px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .tab::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+    background: var(--tc); transform: scaleX(0); transform-origin: left; transition: transform .2s;
+  }
+  .tab[aria-pressed="true"] { background: var(--panel-2); }
+  .tab[aria-pressed="true"]::after { transform: scaleX(1); }
+  .tab[aria-pressed="true"] .t { color: var(--tc); }
+
+  /* ---------- round chips (points view) ---------- */
+  .rounds { display: flex; gap: 6px; margin-top: 10px; overflow-x: auto; scrollbar-width: none; }
+  .rounds::-webkit-scrollbar { display: none; }
+  .round {
+    flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+    min-width: 128px; padding: 8px 16px 9px; cursor: pointer; text-align: left;
+    background: var(--panel); border: 1px solid var(--line); color: var(--text);
+    transition: background .15s, border-color .15s;
+  }
+  .round b { font-size: 18px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .round small { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .round:hover:not(:disabled) { background: var(--panel-2); }
+  .round[aria-pressed="true"] { background: var(--panel-hi); border-color: var(--tc); box-shadow: inset 0 -2px 0 var(--tc); }
+  .round[aria-pressed="true"] b { color: var(--tc); }
+  .round:disabled { cursor: default; opacity: .4; }
+
+  /* ---------- toolbar ---------- */
+  .bar {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; gap: 10px; align-items: center;
+    margin-top: 8px; padding: 12px 0 14px;
+    background: linear-gradient(var(--bg) 82%, rgba(9, 11, 14, 0));
+  }
+  .search { position: relative; flex: 1; min-width: 0; }
+  .search input {
+    width: 100%; height: 50px; padding: 0 46px 0 46px;
+    background: var(--panel); border: 1px solid var(--line); color: var(--text);
+    font: 600 19px var(--ui); letter-spacing: .02em; outline: none; border-radius: 0;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .search input::placeholder { color: var(--dim); }
+  .search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(246, 184, 0, .14); }
+  .search input::-webkit-search-cancel-button { display: none; }
+  .search .ico { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+  .search kbd {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    font: 600 13px var(--ui); color: var(--muted); border: 1px solid var(--line); padding: 2px 8px;
+  }
+  .search input:focus ~ kbd, .search input:not(:placeholder-shown) ~ kbd { display: none; }
+  .count { font-size: 14px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .count b { color: var(--text); }
+  .btn {
+    height: 50px; padding: 0 22px; border: 0; cursor: pointer; white-space: nowrap;
+    background: var(--accent); color: var(--accent-ink);
+    font-weight: 700; font-size: 16px; letter-spacing: .14em; text-transform: uppercase;
+    clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+    transition: filter .15s;
+  }
+  .btn:hover { filter: brightness(1.1); }
+  .btn .caret { margin-left: 8px; vertical-align: middle; position: relative; top: -1px; }
+  .xl {
+    flex: none; height: 50px; padding: 0 18px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; white-space: nowrap;
+    background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    font-weight: 700; font-size: 16px; letter-spacing: .14em; text-transform: uppercase;
+    transition: border-color .15s;
+  }
+  .xl svg { color: var(--excel); flex: none; }
+  .xl:hover { border-color: var(--excel); }
+  .copywrap { position: relative; flex: none; }
+  .menu {
+    position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 220px;
+    background: var(--panel-2); border: 1px solid var(--line); padding: 6px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .55);
+  }
+  .menu[hidden] { display: none; }
+  .menu button {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%;
+    background: none; border: 0; padding: 12px; cursor: pointer; text-align: left;
+    font-weight: 700; font-size: 16px; letter-spacing: .08em; text-transform: uppercase; color: var(--text);
+  }
+  .menu button:hover, .menu button:focus-visible { background: var(--panel-hi); outline: none; }
+  .menu small { color: var(--muted); font-size: 12px; letter-spacing: .12em; }
+
+  /* ---------- section heads ---------- */
+  .group { margin-top: 18px; }
+  .ghead { display: flex; align-items: center; gap: 10px 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .stripe { flex: none; width: 6px; height: 30px; background: var(--tc); transform: skewX(-16deg); }
+  .ghead h2 { margin: 0; font: 600 38px/.8 var(--num); padding-top: 6px; letter-spacing: .03em; white-space: nowrap; }
+  .ghead h2 em { font-style: normal; color: var(--muted); }
+  .gm { font-size: 14px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .rule { flex: 1; min-width: 20px; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+  .chip {
+    flex: none; font-size: 13px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--accent); border: 1px solid rgba(246, 184, 0, .45); padding: 3px 10px;
+  }
+  .chip.soft { color: var(--muted); border-color: var(--line); }
+  .msub { margin: -4px 0 14px; color: var(--muted); font-size: 15px; font-weight: 600; letter-spacing: .06em; }
+  .msub b { color: var(--text); }
+
+  /* ---------- slot cards ---------- */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(262px, 1fr)); gap: 8px; }
+  .card {
+    position: relative; display: flex; align-items: center; gap: 14px;
+    min-height: 68px; padding: 8px 8px 8px 18px; cursor: pointer;
+    background: linear-gradient(90deg, var(--panel-2), var(--panel));
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+    transition: background .15s;
+    outline: none;
+  }
+  .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--tc); }
+  .card:hover, .card:focus-visible { background: linear-gradient(90deg, var(--panel-hi), var(--panel-2)); }
+  .card:hover .num, .card:focus-visible .num { color: var(--accent); }
+  .num {
+    flex: none; min-width: 46px;
+    font: 500 42px/.8 var(--num); padding-top: 7px;
+    font-variant-numeric: tabular-nums; transition: color .15s;
+  }
+  .ign {
+    flex: 1; min-width: 0;
+    font-size: 21px; font-weight: 700; letter-spacing: .02em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .cp {
+    flex: none; width: 40px; height: 40px; display: grid; place-items: center;
+    background: transparent; border: 1px solid transparent; color: var(--dim); cursor: pointer;
+    transition: color .15s, border-color .15s;
+  }
+  .card:hover .cp { color: var(--muted); }
+  .cp:hover { color: var(--accent) !important; border-color: var(--line); }
+  mark { background: rgba(246, 184, 0, .28); color: var(--text); padding: 0 1px; }
+  .empty {
+    padding: 48px 20px; text-align: center; color: var(--muted);
+    font-size: 18px; font-weight: 600; letter-spacing: .06em;
+    background: var(--panel);
+  }
+
+  /* ---------- podium ---------- */
+  .podium { display: grid; grid-template-columns: 1fr 1.12fr 1fr; gap: 10px; align-items: end; margin-bottom: 16px; }
+  .pod {
+    position: relative; min-width: 0; cursor: pointer; outline: none;
+    padding: 18px 20px 18px;
+    background: linear-gradient(180deg, var(--mcs), var(--panel) 80%);
+    border-top: 3px solid var(--mc);
+    clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+    transition: filter .15s;
+  }
+  .pod:hover, .pod:focus-visible { filter: brightness(1.15); }
+  .pod.r1 { padding-top: 30px; padding-bottom: 24px; }
+  .medal { font: 600 58px/.8 var(--num); color: var(--mc); padding-top: 8px; }
+  .pod.r1 .medal { font-size: 74px; }
+  .medal sup { font-size: 22px; vertical-align: top; margin-left: 3px; position: relative; top: 4px; }
+  .pinfo { min-width: 0; }
+  .pign { margin-top: 10px; font-size: 25px; font-weight: 700; letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ptot { margin-top: 10px; font-size: 14px; font-weight: 700; letter-spacing: .16em; color: var(--muted); }
+  .ptot b { font: 600 46px/.8 var(--num); color: var(--text); padding-top: 6px; display: inline-block; letter-spacing: .02em; margin-right: 4px; }
+  .psub { margin-top: 6px; font-size: 14px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .tt { font-weight: 700; color: var(--tc); }
+  .wwcd {
+    position: absolute; top: 16px; right: 22px;
+    background: var(--accent); color: var(--accent-ink);
+    font-size: 12px; font-weight: 700; letter-spacing: .16em; padding: 3px 10px;
+    clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  }
+
+  /* ---------- points table ---------- */
+  .ptable { display: grid; gap: 4px; }
+  .prow {
+    position: relative; display: grid; align-items: center; gap: 8px;
+    min-height: 56px; padding: 0 18px 0 16px; cursor: pointer; outline: none;
+    background: linear-gradient(90deg, var(--panel-2), var(--panel));
+    transition: background .15s;
+  }
+  .prow.m { grid-template-columns: 58px minmax(0, 1fr) 80px 96px 72px 84px; }
+  .prow.o { grid-template-columns: 58px minmax(0, 1fr) repeat(var(--n), 76px) 72px 84px; }
+  .prow::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--rc, var(--tc)); }
+  .prow:hover, .prow:focus-visible { background: linear-gradient(90deg, var(--panel-hi), var(--panel-2)); }
+  .prow.head {
+    min-height: 34px; cursor: default; background: none;
+    font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--muted);
+  }
+  .prow.head::before { display: none; }
+  .rk { font: 500 34px/.8 var(--num); padding-top: 6px; color: var(--rc, var(--text)); font-variant-numeric: tabular-nums; }
+  .pl { min-width: 0; }
+  .pl b { display: block; font-size: 20px; font-weight: 700; letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pl small { display: block; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); white-space: nowrap; }
+  .c { text-align: center; font-size: 19px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .c.muted { color: var(--dim); }
+  .c.hot { color: var(--accent); }
+  .c small { display: block; font-size: 11px; font-weight: 600; letter-spacing: .1em; color: var(--dim); margin-top: -2px; }
+  .tot { text-align: right; font: 600 34px/.8 var(--num); padding-top: 6px; font-variant-numeric: tabular-nums; }
+  .prow.head .c, .prow.head .tot { font: inherit; padding: 0; }
+  .prow.dnp { opacity: .5; }
+  .prow.dnp .tot { font: 700 15px var(--ui); letter-spacing: .14em; color: var(--muted); padding: 0; }
+  .psep {
+    margin: 14px 0 4px; display: flex; align-items: center; gap: 10px;
+    font-size: 13px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--muted);
+  }
+  .psep::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  .legend { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .legend .lt { font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-right: 6px; }
+  .lg { background: var(--panel); padding: 5px 10px; font-size: 15px; font-weight: 700; letter-spacing: .04em; color: var(--muted); }
+  .lg b { color: var(--accent); margin-left: 6px; }
+  .note { margin-top: 10px; font-size: 14px; color: var(--dim); letter-spacing: .03em; }
+
+  /* ---------- details dialog ---------- */
+  dialog {
+    border: 0; padding: 0; color: var(--text); background: var(--panel);
+    width: min(540px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto;
+    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+  }
+  dialog::backdrop { background: rgba(4, 6, 8, .78); backdrop-filter: blur(4px); }
+  .dh {
+    position: relative; padding: 22px 24px 18px; border-bottom: 1px solid var(--line);
+    background: linear-gradient(135deg, var(--tcs), transparent 65%);
+  }
+  .dh .lbl { font-size: 13px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--tc); }
+  .dh .big { display: flex; align-items: center; gap: 16px; margin-top: 6px; padding-right: 36px; }
+  .dh .num { font-size: 72px; min-width: 0; padding-top: 10px; color: var(--accent); }
+  .dh .ign { font-size: 30px; white-space: normal; overflow-wrap: anywhere; line-height: 1.1; }
+  .x {
+    position: absolute; top: 14px; right: 14px; width: 40px; height: 40px;
+    display: grid; place-items: center; background: transparent; border: 1px solid var(--line);
+    color: var(--muted); cursor: pointer;
+  }
+  .x:hover { color: var(--text); border-color: var(--muted); }
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); }
+  .f { background: var(--panel); padding: 12px 24px; min-width: 0; }
+  .f span { display: block; font-size: 12px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+  .f b { display: block; font-size: 19px; font-weight: 600; overflow-wrap: anywhere; }
+  .f b .acc { color: var(--accent); }
+  .f a { color: inherit; text-decoration-color: var(--dim); text-underline-offset: 3px; }
+  .f.wide { grid-column: 1 / -1; }
+  .dact { display: flex; gap: 10px; padding: 16px 24px 20px; border-top: 1px solid var(--line); }
+  .ghost {
+    height: 50px; padding: 0 20px; cursor: pointer; background: transparent; color: var(--text);
+    border: 1px solid var(--line); font-weight: 700; font-size: 16px; letter-spacing: .14em; text-transform: uppercase;
+  }
+  .ghost:hover { border-color: var(--muted); }
+
+  /* ---------- toast ---------- */
+  #toast {
+    position: fixed; left: 50%; bottom: calc(26px + env(safe-area-inset-bottom)); z-index: 50;
+    transform: translate(-50%, 16px); opacity: 0; pointer-events: none;
+    background: var(--accent); color: var(--accent-ink);
+    font-weight: 700; font-size: 15px; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap;
+    padding: 10px 22px;
+    clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+    transition: opacity .18s, transform .18s;
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- phones ---------- */
+  @media (max-width: 640px) {
+    .wrap { padding: 18px 14px 64px; }
+    .top { padding-bottom: 14px; }
+    .logo { width: 38px; height: 38px; }
+    .kicker { font-size: 12px; letter-spacing: .18em; }
+    h1 { font-size: 34px; line-height: .9; }
+    h1 span { display: block; }
+    .stats { display: none; }
+    .views { gap: 22px; }
+    .view { font-size: 23px; padding-top: 15px; }
+    .tabs { gap: 6px; margin-top: 12px; }
+    .tab { padding: 9px 12px 11px; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%); }
+    .tab .t { font-size: 30px; }
+    .tab .s { font-size: 11px; letter-spacing: .1em; }
+    .rounds { margin-top: 8px; margin-right: -14px; padding-right: 14px; }
+    .round { min-width: 0; padding: 7px 14px 8px; }
+    .round b { font-size: 16px; }
+    .round small { font-size: 11px; letter-spacing: .1em; }
+    .bar { gap: 8px; padding: 10px 0 12px; }
+    .search input { height: 46px; padding: 0 12px 0 40px; font-size: 17px; }
+    .search .ico { left: 12px; }
+    .count, .search kbd { display: none; }
+    .btn, .xl { height: 46px; }
+    .btn { padding: 0 14px; letter-spacing: .1em; }
+    .xl { padding: 0 12px; }
+    .btn .long, .xl .long { display: none; }
+    .grid { grid-template-columns: 1fr; gap: 6px; }
+    .card { min-height: 60px; }
+    .num { font-size: 38px; }
+    .ign { font-size: 19px; }
+    .ghead h2 { font-size: 30px; }
+    .chip { font-size: 11px; letter-spacing: .14em; padding: 2px 8px; }
+    .msub { font-size: 14px; }
+
+    .podium { grid-template-columns: 1fr; gap: 6px; }
+    .pod, .pod.r1 {
+      display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; align-items: center; column-gap: 12px;
+      padding: 12px 14px; clip-path: none;
+    }
+    .pod.r1 { order: -1; }
+    .medal, .pod.r1 .medal { font-size: 42px; padding-top: 6px; }
+    .medal sup { font-size: 14px; top: 2px; }
+    .pign { margin: 0; font-size: 20px; }
+    .psub { margin: 2px 0 0; font-size: 12px; letter-spacing: .06em; }
+    .ptot { margin: 0; text-align: right; font-size: 11px; }
+    .ptot b { display: block; font-size: 38px; margin: 0; }
+    .pod .wwcd { display: none; }
+
+    .prow { gap: 6px; min-height: 54px; padding: 0 10px 0 11px; }
+    .prow.m { grid-template-columns: 32px minmax(0, 1fr) 42px 30px 44px; }
+    .prow.o { grid-template-columns: 32px minmax(0, 1fr) repeat(var(--n), 40px) 44px; }
+    .hm, .prow.o .hf { display: none; }
+    .rk { font-size: 26px; }
+    .pl b { font-size: 17px; }
+    .pl small { font-size: 11px; letter-spacing: .08em; }
+    .c { font-size: 16px; }
+    .tot { font-size: 28px; }
+    .prow.head { font-size: 11px; letter-spacing: .08em; }
+    .legend .lt { width: 100%; }
+    .lg { font-size: 14px; padding: 4px 8px; }
+
+    /* details as a bottom sheet */
+    dialog {
+      width: 100%; max-width: 100%; margin: auto 0 0; max-height: 88vh;
+      clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .fields { grid-template-columns: 1fr 1fr; }
+    .f { padding: 10px 16px; }
+    .f b { font-size: 17px; }
+    .dh { padding: 18px 16px 14px; }
+    .dh .num { font-size: 56px; }
+    .dh .ign { font-size: 24px; }
+    .dact { padding: 12px 16px 16px; }
+    .dact .btn { flex: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+        <circle cx="24" cy="24" r="14"/>
+        <path d="M24 3v12M24 33v12M3 24h12M33 24h12"/>
+        <circle cx="24" cy="24" r="3.5" fill="currentColor" stroke="none"/>
+      </svg>
+      <div>
+        <div class="kicker" id="kicker">BGMI · Solo</div>
+        <h1>CODE STAX <span>SOLO TOURNAMENT</span></h1>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <nav class="views" id="views" aria-label="View">
+    <button class="view" data-view="points">Points Table</button>
+    <button class="view" data-view="slots">Slot List</button>
+  </nav>
+
+  <nav class="tabs" id="tabs" aria-label="Territory"></nav>
+  <nav class="rounds" id="rounds" aria-label="Match"></nav>
+
+  <div class="bar">
+    <label class="search">
+      <svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="q" type="search" placeholder="Search players" autocomplete="off" spellcheck="false" aria-label="Search players">
+      <kbd>/</kbd>
+    </label>
+    <span class="count" id="count"></span>
+    <button class="xl" id="xlBtn" title="Download as Excel (.xlsx)" aria-label="Download as Excel">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 20h16"/></svg><span class="long">Excel</span>
+    </button>
+    <div class="copywrap">
+      <button class="btn" id="copyBtn" aria-haspopup="menu" aria-expanded="false">Copy<span class="long" id="copyWhat"> table</span>
+        <svg class="caret" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+      <div class="menu" id="copyMenu" role="menu" hidden>
+        <button role="menuitem" data-fmt="text">Copy as text<small>WhatsApp</small></button>
+        <button role="menuitem" data-fmt="json">Copy as JSON<small>Data</small></button>
+      </div>
+    </div>
+  </div>
+
+  <main id="out"></main>
+</div>
+
+<dialog id="dlg" aria-label="Player details"></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const DATA = [{"id": "T13-01", "territory": "T13", "slot": 1, "ign": "BGMI1Æ146"}, {"id": "T13-02", "territory": "T13", "slot": 2, "ign": "NikhilPasw。62"}, {"id": "T13-03", "territory": "T13", "slot": 3, "ign": "PUBG2メ330"}, {"id": "T13-04", "territory": "T13", "slot": 4, "ign": "D17nikhil"}, {"id": "T13-05", "territory": "T13", "slot": 5, "ign": "ViratPagluĪ"}, {"id": "T13-06", "territory": "T13", "slot": 6, "ign": "sonar_786"}, {"id": "T13-07", "territory": "T13", "slot": 7, "ign": "wahiēhuēmeū"}, {"id": "T13-08", "territory": "T13", "slot": 8, "ign": "777Krrish"}, {"id": "T13-09", "territory": "T13", "slot": 9, "ign": "4MxRayquazaW"}, {"id": "T13-10", "territory": "T13", "slot": 10, "ign": "ZENxDELTA"}, {"id": "T13-11", "territory": "T13", "slot": 11, "ign": "Hilter0107"}, {"id": "T13-12", "territory": "T13", "slot": 12, "ign": "jatinvK"}, {"id": "T13-13", "territory": "T13", "slot": 13, "ign": "PUBG3789"}, {"id": "T13-14", "territory": "T13", "slot": 14, "ign": "YOUNGSEXYYYY"}, {"id": "T13-15", "territory": "T13", "slot": 15, "ign": "nishantyadv192"}, {"id": "T13-16", "territory": "T13", "slot": 16, "ign": "PUBG4335"}, {"id": "T13-17", "territory": "T13", "slot": 17, "ign": "×Cʜoʀ×Xㅤ"}, {"id": "T13-18", "territory": "T13", "slot": 18, "ign": "TAGJASMIN17"}, {"id": "T13-19", "territory": "T13", "slot": 19, "ign": "isjsjzjsuwj"}, {"id": "T13-20", "territory": "T13", "slot": 20, "ign": "Try Hard"}, {"id": "T13-21", "territory": "T13", "slot": 21, "ign": "hridayjais"}, {"id": "T13-22", "territory": "T13", "slot": 22, "ign": "Aqua_wizard"}, {"id": "T13-23", "territory": "T13", "slot": 23, "ign": "wtfkyascene"}, {"id": "T13-24", "territory": "T13", "slot": 24, "ign": "LÃDLÊ"}, {"id": "T13-25", "territory": "T13", "slot": 25, "ign": "itachinj11"}, {"id": "T13-26", "territory": "T13", "slot": 26, "ign": "『PAR么DOX』"}, {"id": "T13-27", "territory": "T13", "slot": 27, "ign": "kaku_0666"}, {"id": "T13-28", "territory": "T13", "slot": 28, "ign": "CØRE女Yash"}, {"id": "T13-29", "territory": "T13", "slot": 29, "ign": "TAGßCHILLI16"}, {"id": "T13-30", "territory": "T13", "slot": 30, "ign": "KC々MSAAD"}, {"id": "T13-31", "territory": "T13", "slot": 31, "ign": "akashyadav8429"}, {"id": "T13-32", "territory": "T13", "slot": 32, "ign": "GheeKHatam"}, {"id": "T13-33", "territory": "T13", "slot": 33, "ign": "VcSxSunyaaDON"}, {"id": "T13-34", "territory": "T13", "slot": 34, "ign": "luvansss"}, {"id": "T13-35", "territory": "T13", "slot": 35, "ign": "GxdlArnav9999"}, {"id": "T13-36", "territory": "T13", "slot": 36, "ign": "SwarajJaiswar"}, {"id": "T13-37", "territory": "T13", "slot": 37, "ign": "S12Kse14"}, {"id": "T13-38", "territory": "T13", "slot": 38, "ign": "wasteganehuyee"}, {"id": "T1-01", "territory": "T1", "slot": 1, "ign": "『NOXY』OG"}, {"id": "T1-02", "territory": "T1", "slot": 2, "ign": "AshfanJodHoKya"}, {"id": "T1-03", "territory": "T1", "slot": 3, "ign": "TeamBLxDyrax"}, {"id": "T1-04", "territory": "T1", "slot": 4, "ign": "SOULGOD0"}, {"id": "T1-05", "territory": "T1", "slot": 5, "ign": "SufiyanMan056"}, {"id": "T1-06", "territory": "T1", "slot": 6, "ign": "YuvrajKori886"}, {"id": "T1-07", "territory": "T1", "slot": 7, "ign": "CFxIBBU"}, {"id": "T1-08", "territory": "T1", "slot": 8, "ign": "F4Hxs4qlainNn"}, {"id": "T1-09", "territory": "T1", "slot": 9, "ign": "KaalChudduuuu"}, {"id": "T1-10", "territory": "T1", "slot": 10, "ign": "STHxIGRIS"}, {"id": "T1-11", "territory": "T1", "slot": 11, "ign": "Neymar11hu"}, {"id": "T1-12", "territory": "T1", "slot": 12, "ign": "TeamBLxGokuu"}, {"id": "T1-13", "territory": "T1", "slot": 13, "ign": "『LØST』"}, {"id": "T1-14", "territory": "T1", "slot": 14, "ign": "iM乛ÈVÌŁ"}, {"id": "T1-15", "territory": "T1", "slot": 15, "ign": "TeamBLxBACCHI"}, {"id": "T1-16", "territory": "T1", "slot": 16, "ign": "TEAMK70xFURKAN"}, {"id": "T1-17", "territory": "T1", "slot": 17, "ign": "GT么ZEN"}, {"id": "T1-18", "territory": "T1", "slot": 18, "ign": "××Arsh××A"}, {"id": "T1-19", "territory": "T1", "slot": 19, "ign": "TGxGaara"}, {"id": "T1-20", "territory": "T1", "slot": 20, "ign": "TGxAtoMic"}, {"id": "T1-21", "territory": "T1", "slot": 21, "ign": "TGxAngad"}, {"id": "T1-22", "territory": "T1", "slot": 22, "ign": "INVicTuS21"}, {"id": "T1-23", "territory": "T1", "slot": 23, "ign": "SapphireNEXTAR"}, {"id": "T1-24", "territory": "T1", "slot": 24, "ign": "乛٭ZORO乂"}, {"id": "T1-25", "territory": "T1", "slot": 25, "ign": "GT么Oyyyyy"}, {"id": "T1-26", "territory": "T1", "slot": 26, "ign": "GG彡VaMpiRe204"}, {"id": "T1-27", "territory": "T1", "slot": 27, "ign": "×ēSytheē"}, {"id": "T1-28", "territory": "T1", "slot": 28, "ign": "RAHULĒSOLOS"}, {"id": "T1-29", "territory": "T1", "slot": 29, "ign": "TGxNoxxy"}, {"id": "T1-30", "territory": "T1", "slot": 30, "ign": "BIL4LXD"}, {"id": "T1-31", "territory": "T1", "slot": 31, "ign": "GTxZEN"}, {"id": "T1-32", "territory": "T1", "slot": 32, "ign": "Rush3rrrfps"}, {"id": "T1-33", "territory": "T1", "slot": 33, "ign": "・VeLDorALaLa"}, {"id": "T1-34", "territory": "T1", "slot": 34, "ign": "RxSGod"}, {"id": "T1-35", "territory": "T1", "slot": 35, "ign": "・BeeruSLALA"}, {"id": "T1-36", "territory": "T1", "slot": 36, "ign": "JishanShah9"}, {"id": "T1-37", "territory": "T1", "slot": 37, "ign": "LXCIFER7"}, {"id": "T1-38", "territory": "T1", "slot": 38, "ign": "SEXYPARI69"}, {"id": "T1-39", "territory": "T1", "slot": 39, "ign": "CHalREEENOObbb"}, {"id": "T1-40", "territory": "T1", "slot": 40, "ign": "..SHAN"}];
+const MATCHES = [{"id": "T1-M1", "territory": "T1", "match": 1, "map": "Erangel", "date": "2026-10-25", "results": [{"pid": "T1-32", "place": 1, "kills": 3, "regPlace": 1}, {"pid": "T1-16", "place": 2, "kills": 1, "regPlace": 2}, {"pid": "T1-22", "place": 3, "kills": 6, "regPlace": 3}, {"pid": "T1-40", "place": 4, "kills": 1, "regPlace": 4}, {"pid": "T1-03", "place": 5, "kills": 3, "regPlace": 5}, {"pid": "T1-38", "place": 6, "kills": 1, "regPlace": 6}, {"pid": "T1-31", "place": 7, "kills": 0, "regPlace": 7}, {"pid": "T1-33", "place": 8, "kills": 1, "regPlace": 8}, {"pid": "T1-23", "place": 9, "kills": 2, "regPlace": 9}, {"pid": "T1-14", "place": 10, "kills": 0, "regPlace": 10}, {"pid": "T1-12", "place": 11, "kills": 2, "regPlace": 11}, {"pid": "T1-17", "place": 12, "kills": 1, "regPlace": 12}, {"pid": "T1-28", "place": 13, "kills": 0, "regPlace": 13}, {"pid": "T1-27", "place": 15, "kills": 1, "regPlace": 14}, {"pid": "T1-19", "place": 16, "kills": 0, "regPlace": 15}, {"pid": "T1-18", "place": 17, "kills": 0, "regPlace": 16}, {"pid": "T1-34", "place": 18, "kills": 0, "regPlace": 17}, {"pid": "T1-20", "place": 19, "kills": 4, "regPlace": 18}, {"pid": "T1-07", "place": 20, "kills": 0, "regPlace": 19}, {"pid": "T1-30", "place": 22, "kills": 0, "regPlace": 20}, {"pid": "T1-24", "place": 23, "kills": 0, "regPlace": 21}, {"pid": "T1-13", "place": 24, "kills": 0, "regPlace": 22}, {"pid": "T1-05", "place": 25, "kills": 2, "regPlace": 23}, {"pid": "T1-26", "place": 26, "kills": 0, "regPlace": 24}, {"pid": "T1-02", "place": 27, "kills": 1, "regPlace": 25}, {"pid": "T1-08", "place": 28, "kills": 0, "regPlace": 26}, {"pid": "T1-25", "place": 29, "kills": 0, "regPlace": 27}, {"pid": "T1-21", "place": 30, "kills": 0, "regPlace": 28}, {"pid": "T1-04", "place": 31, "kills": 0, "regPlace": 29}, {"pid": "T1-29", "place": 32, "kills": 1, "regPlace": 30}, {"pid": "T1-11", "place": 33, "kills": 1, "regPlace": 31}, {"pid": "T1-15", "place": 35, "kills": 0, "regPlace": 32}, {"pid": "T1-01", "place": 36, "kills": 0, "regPlace": 33}, {"pid": "T1-36", "place": 37, "kills": 0, "regPlace": 34}, {"pid": "T1-37", "place": 38, "kills": 0, "regPlace": 35}, {"pid": "T1-09", "place": 39, "kills": 0, "regPlace": 36}, {"pid": "T1-35", "place": 40, "kills": 0, "regPlace": 37}, {"pid": "T1-10", "place": 41, "kills": 0, "regPlace": 38}], "unregistered": 3}, {"id": "T13-M1", "territory": "T13", "match": 1, "map": "", "date": "2026-10-25", "results": [{"pid": "T13-37", "place": 1, "kills": 8, "regPlace": 1}, {"pid": "T13-33", "place": 2, "kills": 6, "regPlace": 2}, {"pid": "T13-05", "place": 3, "kills": 2, "regPlace": 3}, {"pid": "T13-20", "place": 4, "kills": 0, "regPlace": 4}, {"pid": "T13-09", "place": 5, "kills": 0, "regPlace": 5}, {"pid": "T13-10", "place": 8, "kills": 1, "regPlace": 6}, {"pid": "T13-15", "place": 9, "kills": 1, "regPlace": 7}, {"pid": "T13-32", "place": 10, "kills": 3, "regPlace": 8}, {"pid": "T13-11", "place": 11, "kills": 0, "regPlace": 9}, {"pid": "T13-27", "place": 12, "kills": 1, "regPlace": 10}, {"pid": "T13-25", "place": 13, "kills": 2, "regPlace": 11}, {"pid": "T13-17", "place": 14, "kills": 1, "regPlace": 12}, {"pid": "T13-02", "place": 15, "kills": 0, "regPlace": 13}, {"pid": "T13-24", "place": 16, "kills": 3, "regPlace": 14}, {"pid": "T13-23", "place": 18, "kills": 0, "regPlace": 15}, {"pid": "T13-34", "place": 19, "kills": 2, "regPlace": 16}, {"pid": "T13-12", "place": 20, "kills": 0, "regPlace": 17}, {"pid": "T13-38", "place": 21, "kills": 1, "regPlace": 18}, {"pid": "T13-08", "place": 22, "kills": 0, "regPlace": 19}, {"pid": "T13-01", "place": 23, "kills": 1, "regPlace": 20}, {"pid": "T13-35", "place": 24, "kills": 1, "regPlace": 21}, {"pid": "T13-30", "place": 25, "kills": 0, "regPlace": 22}, {"pid": "T13-29", "place": 26, "kills": 0, "regPlace": 23}, {"pid": "T13-04", "place": 27, "kills": 0, "regPlace": 24}, {"pid": "T13-28", "place": 28, "kills": 1, "regPlace": 25}, {"pid": "T13-22", "place": 30, "kills": 0, "regPlace": 26}, {"pid": "T13-26", "place": 31, "kills": 1, "regPlace": 27}, {"pid": "T13-14", "place": 32, "kills": 0, "regPlace": 28}, {"pid": "T13-31", "place": 34, "kills": 0, "regPlace": 29}, {"pid": "T13-18", "place": 35, "kills": 0, "regPlace": 30}, {"pid": "T13-19", "place": 36, "kills": 0, "regPlace": 31}, {"pid": "T13-21", "place": 38, "kills": 0, "regPlace": 32}, {"pid": "T13-16", "place": 41, "kills": 0, "regPlace": 33}, {"pid": "T13-36", "place": 42, "kills": 0, "regPlace": 34}], "unregistered": 8}];
+// Public build (for hosting): players carry only territory, slot and IGN. No names, phones or agents.
+const PUBLIC = true;
+const TOURNAMENT = { name: "Code Stax Solo Tournament", game: "BGMI", mode: "Solo" };
+const ORDER = ["T13", "T1"];
+const MATCHES_PER_TERRITORY = 2;
+// BGMI placement points; every finish is +1
+const PLACE_PTS = { 1: 10, 2: 6, 3: 5, 4: 4, 5: 3, 6: 2, 7: 1, 8: 1 };
+const pp = (place) => PLACE_PTS[place] || 0;
+// false: placement = in-game finish position (unregistered players still take up places).
+// true:  placement is re-counted among registered players only.
+const PLACE_AMONG_REGISTERED = false;
+const placeOf = (r) => (PLACE_AMONG_REGISTERED ? r.regPlace : r.place);
+
+const TC = { T13: "var(--t13)", T1: "var(--t1)", all: "var(--accent)" };
+const TCS = { T13: "rgba(60,195,255,.16)", T1: "rgba(255,123,61,.16)" };
+const MEDAL = { 1: "var(--gold)", 2: "var(--silver)", 3: "var(--bronze)" };
+const MEDAL_S = { 1: "rgba(246,184,0,.20)", 2: "rgba(201,211,221,.13)", 3: "rgba(216,138,78,.16)" };
+const SUFFIX = { 1: "ST", 2: "ND", 3: "RD" };
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const norm = (s) => String(s ?? "").normalize("NFKC").toLowerCase();
+const pad = (n) => String(n).padStart(2, "0");
+const sum = (a) => a.reduce((x, y) => x + y, 0);
+const uniq = (a) => [...new Set(a)];
+const range = (n) => Array.from({ length: n }, (_, i) => i + 1);
+const byTerritory = (t) => DATA.filter((p) => p.territory === t);
+const byId = Object.fromEntries(DATA.map((p) => [p.id, p]));
+const matchesOf = (t) => MATCHES.filter((m) => m.territory === t).sort((a, b) => a.match - b.match);
+const fmtDate = (d, year) => {
+  if (!d) return "";
+  const dt = new Date(d + "T00:00:00");
+  return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", ...(year ? { year: "numeric" } : {}) }).toUpperCase();
+};
+
+const ICON_COPY = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="9" y="9" width="11" height="11"/><path d="M5 15V4h11"/></svg>';
+const ICON_X = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+
+const store = {
+  get(k, d) { try { return localStorage.getItem(k) ?? d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+};
+
+/* ---------- match lookups ---------- */
+const roundNumbers = (t) => {
+  const ms = t === "all" ? MATCHES : matchesOf(t);
+  return range(Math.max(MATCHES_PER_TERRITORY, ...ms.map((m) => m.match)));
+};
+const matchesFor = (t, round) =>
+  MATCHES.filter((m) => (t === "all" || m.territory === t) && (round === "overall" || m.match === Number(round)));
+function resultFor(p, n) {
+  const m = MATCHES.find((x) => x.territory === p.territory && x.match === n);
+  if (!m) return { state: "upcoming" };
+  const r = m.results.find((x) => x.pid === p.id);
+  return r ? { state: "played", r, m } : { state: "dnp", m };
+}
+
+/* ---------- state ---------- */
+let view = store.get("cs-view", "points");
+if (!["points", "slots"].includes(view)) view = "points";
+let tab = store.get("cs-tab", "all");
+if (tab !== "all" && !ORDER.includes(tab)) tab = "all";
+let round = store.get("cs-round", "overall");
+
+function roundOptions() {
+  const all = matchesFor(tab, "overall");
+  const totalRounds = roundNumbers(tab).length * (tab === "all" ? ORDER.length : 1);
+  const opts = [{ id: "overall", label: "Overall", sub: `${all.length}/${totalRounds} played`, disabled: !all.length }];
+  for (const n of roundNumbers(tab)) {
+    const ms = matchesFor(tab, String(n));
+    let sub = "Upcoming";
+    if (ms.length) {
+      if (tab === "all") sub = ms.length === ORDER.length ? "All lobbies" : ms.map((m) => m.territory).join(" + ");
+      else sub = [ms[0].map, fmtDate(ms[0].date)].filter(Boolean).join(" · ") || "Played";
+    }
+    opts.push({ id: String(n), label: `Match ${n}`, sub, disabled: !ms.length });
+  }
+  return opts;
+}
+function fixRound() {
+  const opts = roundOptions();
+  if (!opts.some((o) => o.id === round && !o.disabled)) round = "overall";
+}
+fixRound();
+
+/* ---------- helpers ---------- */
+function highlight(text, q) {
+  const t = String(text ?? "");
+  if (!q) return esc(t);
+  const n = norm(t);
+  const i = n.indexOf(q);
+  // NFKC can change length for odd characters; only highlight when lengths line up
+  if (i < 0 || n.length !== t.length) return esc(t);
+  return esc(t.slice(0, i)) + "<mark>" + esc(t.slice(i, i + q.length)) + "</mark>" + esc(t.slice(i + q.length));
+}
+
+function matches(p, q) {
+  if (!q) return true;
+  if (/^\d{1,3}$/.test(q) && p.slot === Number(q)) return true;
+  return [p.ign, p.name, p.phone, p.agent, p.territory].some((v) => norm(v).includes(q));
+}
+
+const query = () => norm($("q").value.trim());
+
+/* Standings for a set of players over a set of matches.
+   Tie-break: total, WWCDs, placement points, finishes, then placement in the latest match. */
+function standings(players, ms) {
+  const rows = players.map((p) => {
+    const res = ms
+      .filter((m) => m.territory === p.territory)
+      .sort((a, b) => a.match - b.match)
+      .map((m) => m.results.find((r) => r.pid === p.id))
+      .filter(Boolean);
+    const placePts = sum(res.map((r) => pp(placeOf(r))));
+    const kills = sum(res.map((r) => r.kills));
+    return {
+      p, played: res.length, placePts, kills, total: placePts + kills,
+      wwcd: res.filter((r) => placeOf(r) === 1).length,
+      place: res.length ? placeOf(res[res.length - 1]) : null,
+    };
+  });
+  const played = rows
+    .filter((r) => r.played)
+    .sort((a, b) => b.total - a.total || b.wwcd - a.wwcd || b.placePts - a.placePts || b.kills - a.kills || a.place - b.place);
+  played.forEach((r, i) => (r.rank = i + 1));
+  return { played, dnp: rows.filter((r) => !r.played) };
+}
+
+/* ---------- header, tabs, rounds ---------- */
+function renderHeader() {
+  const dates = uniq(MATCHES.map((m) => m.date).filter(Boolean)).sort();
+  const when = dates.length ? (dates.length === 1 ? fmtDate(dates[0], true) : `${fmtDate(dates[0])} – ${fmtDate(dates[dates.length - 1], true)}`) : "";
+  $("kicker").textContent = [TOURNAMENT.game, TOURNAMENT.mode, when].filter(Boolean).join(" · ");
+  const total = ORDER.length * MATCHES_PER_TERRITORY;
+  const s = [[DATA.length, "Players"], [ORDER.length, "Territories"], [`${MATCHES.length}/${total}`, "Matches played"], [TOURNAMENT.mode, "Mode"]];
+  $("stats").innerHTML = s.map(([b, l]) => `<div class="stat"><b>${b}</b><span>${l}</span></div>`).join("");
+}
+
+function renderViews() {
+  document.querySelectorAll(".view").forEach((b) => b.setAttribute("aria-pressed", b.dataset.view === view));
+  $("copyWhat").textContent = view === "points" ? " table" : " list";
+  $("copyBtn").title = view === "points" ? "Copy the points table" : "Copy the slot list";
+}
+
+function renderTabs() {
+  const tabs = [["all", "ALL", DATA.length], ...ORDER.map((t) => [t, t, byTerritory(t).length])];
+  $("tabs").innerHTML = tabs
+    .map(([k, label, n]) => {
+      let sub = `${n} players`;
+      if (view === "points") {
+        if (k === "all") sub = "Combined";
+        else sub = `${matchesOf(k).length}/${roundNumbers(k).length} played`;
+      }
+      return `<button class="tab" data-tab="${k}" aria-pressed="${k === tab}" style="--tc:${TC[k]}">
+        <span class="t">${label}</span><span class="s">${sub}</span></button>`;
+    })
+    .join("");
+  const r = $("rounds");
+  r.hidden = view !== "points";
+  r.style.setProperty("--tc", TC[tab]);
+  if (view === "points") {
+    r.innerHTML = roundOptions()
+      .map((o) => `<button class="round" data-round="${o.id}" aria-pressed="${o.id === round}" ${o.disabled ? "disabled" : ""}>
+        <b>${o.label}</b><small>${esc(o.sub)}</small></button>`)
+      .join("");
+  }
+}
+
+/* ---------- slot list view ---------- */
+function card(p, q) {
+  return `<div class="card" role="button" tabindex="0" data-id="${esc(p.id)}" style="--tc:${TC[p.territory]}">
+    <span class="num">${pad(p.slot)}</span>
+    <span class="ign" title="${esc(p.ign)}">${highlight(p.ign, q)}</span>
+    <button class="cp" data-copy="${esc(p.ign)}" title="Copy IGN" aria-label="Copy ${esc(p.ign)}">${ICON_COPY}</button>
+  </div>`;
+}
+
+const visibleSlots = () => DATA.filter((p) => (tab === "all" || p.territory === tab) && matches(p, query()));
+
+function renderSlots() {
+  const q = query();
+  const rows = visibleSlots();
+  let html = "";
+  for (const t of ORDER.filter((t) => tab === "all" || t === tab)) {
+    const list = rows.filter((p) => p.territory === t);
+    if (q && !list.length) continue;
+    html += `<section class="group" style="--tc:${TC[t]}">
+      <div class="ghead"><span class="stripe"></span><h2>${t}</h2>
+        <span class="gm">Solo · ${q ? `${list.length} of ` : ""}${byTerritory(t).length} players</span><span class="rule"></span></div>
+      <div class="grid">${list.map((p) => card(p, q)).join("")}</div>
+    </section>`;
+  }
+  if (!html) html = `<div class="group"><div class="empty">No player matches “${esc($("q").value.trim())}”</div></div>`;
+  $("out").innerHTML = html;
+  const total = tab === "all" ? DATA.length : byTerritory(tab).length;
+  $("count").innerHTML = `<b>${rows.length}</b> / ${total}`;
+}
+
+/* ---------- points view ---------- */
+function currentPoints() {
+  const ms = matchesFor(tab, round);
+  if (!ms.length) return null;
+  const overall = round === "overall";
+  const combined = tab === "all";
+  const players = combined ? DATA : byTerritory(tab);
+  const { played, dnp } = standings(players, ms);
+  const scope = combined ? "All Territories" : tab;
+  const title = `${scope} · ${overall ? "Overall" : `Match ${round}`}`;
+  return {
+    ms, played, dnp, overall, combined, scope, title,
+    maps: uniq(ms.map((m) => m.map).filter(Boolean)),
+    dates: uniq(ms.map((m) => m.date).filter(Boolean)).sort(),
+    rounds: overall ? roundNumbers(tab) : [Number(round)],
+    unregistered: sum(ms.map((m) => m.unregistered || 0)),
+  };
+}
+
+const terrTag = (p) => `<span class="tt" style="--tc:${TC[p.territory]}">${p.territory}</span>`;
+
+function pod(r, cur) {
+  const badge = cur.overall ? (r.wwcd ? `${r.wwcd}× WWCD` : "") : r.place === 1 ? "WWCD" : "";
+  const where = cur.combined ? `${terrTag(r.p)} · ` : "";
+  const what = cur.overall ? `${r.played} match${r.played > 1 ? "es" : ""}` : `#${r.place} place`;
+  return `<div class="pod r${r.rank}" role="button" tabindex="0" data-id="${esc(r.p.id)}" style="--mc:${MEDAL[r.rank]};--mcs:${MEDAL_S[r.rank]}">
+    ${badge ? `<span class="wwcd">${badge}</span>` : ""}
+    <div class="medal">${r.rank}<sup>${SUFFIX[r.rank]}</sup></div>
+    <div class="pinfo">
+      <div class="pign" title="${esc(r.p.ign)}">${esc(r.p.ign)}</div>
+      <div class="psub">${where}${what} · ${r.kills} fin</div>
+    </div>
+    <div class="ptot"><b>${r.total}</b>PTS</div>
+  </div>`;
+}
+
+function roundCell(p, n) {
+  const x = resultFor(p, n);
+  if (x.state === "upcoming") return `<span class="c muted">–</span>`;
+  if (x.state === "dnp") return `<span class="c muted">DNP</span>`;
+  const place = placeOf(x.r);
+  return `<span class="c" title="#${place} · ${x.r.kills} fin">${pp(place) + x.r.kills}<small>#${place}</small></span>`;
+}
+
+function prow(r, cur, q) {
+  const rc = r.played && r.rank <= 3 ? `--rc:${MEDAL[r.rank]};` : "";
+  const sub = `${cur.combined ? `${terrTag(r.p)} · ` : ""}Slot ${pad(r.p.slot)}`;
+  const head = `<span class="rk">${r.played ? pad(r.rank) : "—"}</span>
+    <span class="pl"><b title="${esc(r.p.ign)}">${highlight(r.p.ign, q)}</b><small>${sub}</small></span>`;
+  const tot = `<span class="tot">${r.played ? r.total : "DNP"}</span>`;
+  const cls = `prow ${cur.overall ? "o" : "m"}${r.played ? "" : " dnp"}`;
+  const style = `${rc}--tc:${TC[r.p.territory]};--n:${cur.rounds.length}`;
+  if (cur.overall) {
+    return `<div class="${cls}" role="button" tabindex="0" data-id="${esc(r.p.id)}" style="${style}">
+      ${head}${cur.rounds.map((n) => roundCell(r.p, n)).join("")}
+      <span class="c hf ${r.kills ? "" : "muted"}">${r.played ? r.kills : "—"}</span>${tot}</div>`;
+  }
+  return `<div class="${cls}" role="button" tabindex="0" data-id="${esc(r.p.id)}" style="${style}">
+    ${head}
+    <span class="c ${r.played && pp(r.place) ? "hot" : "muted"}">${r.played ? `#${r.place}` : "—"}</span>
+    <span class="c hm ${r.placePts ? "" : "muted"}">${r.played ? r.placePts : "—"}</span>
+    <span class="c ${r.kills ? "" : "muted"}">${r.played ? r.kills : "—"}</span>${tot}</div>`;
+}
+
+function renderPoints() {
+  const cur = currentPoints();
+  if (!cur) {
+    $("out").innerHTML = `<div class="group"><div class="empty">No match results yet</div></div>`;
+    $("count").textContent = "";
+    return;
+  }
+  const { played, dnp, overall, rounds, maps, dates, unregistered } = cur;
+  const q = query();
+  const shownPlayed = played.filter((r) => matches(r.p, q));
+  const shownDnp = dnp.filter((r) => matches(r.p, q));
+  const scopeHtml = cur.combined ? "All Territories" : tab;
+  const chips = [
+    ...(!overall ? maps.map((m) => `<span class="chip">${esc(m)}</span>`) : []),
+    ...dates.map((d) => `<span class="chip soft">${fmtDate(d)}</span>`),
+  ].join("");
+
+  let html = `<section class="group" style="--tc:${TC[tab]}">
+    <div class="ghead"><span class="stripe"></span><h2>${scopeHtml}<em> · ${overall ? "Overall" : `Match ${round}`}</em></h2>${chips}<span class="rule"></span></div>
+    <div class="msub"><b>${played.length}</b> played · <b>${dnp.length}</b> did not play${unregistered ? ` · ${unregistered} unregistered left out` : ""}</div>`;
+
+  if (!q && played.length >= 3) html += `<div class="podium">${[played[1], played[0], played[2]].map((r) => pod(r, cur)).join("")}</div>`;
+
+  if (!shownPlayed.length && !shownDnp.length) {
+    html += `<div class="empty">No player matches “${esc($("q").value.trim())}”</div>`;
+  } else {
+    const headCells = overall
+      ? `${rounds.map((n) => `<span class="c">M${n}</span>`).join("")}<span class="c hf">Fin</span>`
+      : `<span class="c">Place</span><span class="c hm">Place pts</span><span class="c">Fin</span>`;
+    html += `<div class="ptable">
+      <div class="prow head ${overall ? "o" : "m"}" style="--n:${rounds.length}"><span>#</span><span>Player</span>${headCells}<span class="tot">Total</span></div>
+      ${shownPlayed.map((r) => prow(r, cur, q)).join("")}
+      ${shownDnp.length ? `<div class="psep">Did not play · ${shownDnp.length}</div>${shownDnp.map((r) => prow(r, cur, q)).join("")}` : ""}
+    </div>`;
+  }
+
+  html += `<div class="legend"><span class="lt">Points</span>
+      ${[["#1", 10], ["#2", 6], ["#3", 5], ["#4", 4], ["#5", 3], ["#6", 2], ["#7–8", 1], ["#9+", 0], ["Finish", "+1"]]
+        .map(([k, v]) => `<span class="lg">${k}<b>${v}</b></span>`).join("")}
+    </div>
+    <div class="note">BGMI points system. ${PLACE_AMONG_REGISTERED ? "Placement is counted among registered players only." : "Placement is the in-game finish position."}
+      Unregistered players are not counted. Ties go to WWCDs, then placement points, then finishes.
+      ${overall ? "M1 / M2 show points with the in-game place underneath." : ""}</div>
+  </section>`;
+
+  $("out").innerHTML = html;
+  $("count").innerHTML = `<b>${shownPlayed.length + shownDnp.length}</b> / ${played.length + dnp.length}`;
+}
+
+function render() {
+  renderViews();
+  view === "points" ? renderPoints() : renderSlots();
+}
+function renderAll() { renderTabs(); render(); }
+
+/* ---------- details dialog ---------- */
+function openDetail(p) {
+  const f = (label, val, wide) => `<div class="f${wide ? " wide" : ""}"><span>${label}</span><b>${val || "—"}</b></div>`;
+  const results = matchesOf(p.territory).map((m) => {
+    const r = m.results.find((x) => x.pid === p.id);
+    const label = [`M${m.match}`, m.map, fmtDate(m.date)].filter(Boolean).map(esc).join(" · ");
+    return `${label} — ${r ? `#${placeOf(r)} · ${r.kills} fin · <span class="acc">${pp(placeOf(r)) + r.kills} pts</span>` : "DNP"}`;
+  });
+  const dlg = $("dlg");
+  dlg.style.setProperty("--tc", TC[p.territory]);
+  dlg.style.setProperty("--tcs", TCS[p.territory]);
+  dlg.innerHTML = `
+    <div class="dh">
+      <div class="lbl">${p.territory} · Solo · Slot</div>
+      <div class="big"><span class="num">${pad(p.slot)}</span><span class="ign">${esc(p.ign)}</span></div>
+      <button class="x" data-close aria-label="Close">${ICON_X}</button>
+    </div>
+    <div class="fields">
+      ${results.length ? f("Results", results.join("<br>"), true) : PUBLIC ? f("Results", "No matches played yet", true) : ""}
+      ${PUBLIC ? "" : `
+      ${f("Name", esc(p.name), true)}
+      ${f("Phone", p.phone ? `<a href="tel:${esc(p.phone)}">${esc(p.phone)}</a>` : "")}
+      ${f("Age · Gender", [p.age, p.gender].filter(Boolean).map(esc).join(" · "))}
+      ${f("Agent", esc(p.agent))}
+      ${f("Agent phone", p.agentPhone ? `<a href="tel:${esc(p.agentPhone)}">${esc(p.agentPhone)}</a>` : "")}
+      ${f("Registered", esc(p.registered), true)}`}
+    </div>
+    <div class="dact">
+      <button class="btn" data-copy="${esc(p.ign)}">Copy IGN</button>
+      <button class="ghost" data-close>Close</button>
+    </div>`;
+  dlg.showModal();
+}
+
+/* ---------- copy ---------- */
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) {}
+  ta.remove();
+  return ok;
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 1400);
+}
+async function copyAndToast(text, msg) { toast((await copyText(text)) ? msg : "Copy failed"); }
+
+const pointsTitle = (cur) => {
+  const bits = [cur.title, ...(!cur.overall ? cur.maps : []), ...cur.dates.map((d) => fmtDate(d, true))];
+  return bits.join(" · ");
+};
+
+function slotListText() {
+  const rows = visibleSlots();
+  return [TOURNAMENT.name, ...ORDER.filter((t) => tab === "all" || t === tab)
+    .map((t) => {
+      const list = rows.filter((p) => p.territory === t);
+      return list.length ? `\n${t} – Solo Slot List\n` + list.map((p) => `${pad(p.slot)}. ${p.ign}`).join("\n") : "";
+    })
+    .filter(Boolean)].join("\n");
+}
+
+function pointsText() {
+  const cur = currentPoints();
+  if (!cur) return "";
+  const tag = (p) => (cur.combined ? ` (${p.territory})` : "");
+  const lines = cur.played.map((r) => {
+    let detail;
+    if (cur.overall) {
+      detail = cur.rounds.map((n) => {
+        const x = resultFor(r.p, n);
+        return `M${n} ${x.state === "played" ? pp(placeOf(x.r)) + x.r.kills : x.state === "dnp" ? "DNP" : "–"}`;
+      }).join(", ") + `, ${r.kills} fin`;
+    } else {
+      detail = `#${r.place}, ${r.kills} fin`;
+    }
+    return `${pad(r.rank)}. ${r.p.ign}${tag(r.p)} – ${r.total} pts (${detail})`;
+  });
+  return [
+    TOURNAMENT.name,
+    `${pointsTitle(cur)} – Points Table`,
+    "",
+    ...lines,
+    ...(cur.dnp.length ? ["", `DNP: ${cur.dnp.map((r) => r.p.ign + tag(r.p)).join(", ")}`] : []),
+  ].join("\n");
+}
+
+/* ---------- JSON copy (no names or phone numbers) ---------- */
+function pointsJson() {
+  const cur = currentPoints();
+  if (!cur) return null;
+  const perRound = (p) => cur.rounds.map((n) => {
+    const x = resultFor(p, n);
+    if (x.state === "played") return { match: n, place: placeOf(x.r), finishes: x.r.kills, points: pp(placeOf(x.r)) + x.r.kills };
+    return { match: n, [x.state]: true };
+  });
+  return {
+    tournament: TOURNAMENT.name,
+    game: TOURNAMENT.game,
+    mode: TOURNAMENT.mode.toLowerCase(),
+    scope: cur.combined ? "all" : tab,
+    match: cur.overall ? "overall" : Number(round),
+    maps: cur.maps,
+    dates: cur.dates,
+    pointsSystem: { placement: PLACE_PTS, otherPlaces: 0, perFinish: 1 },
+    placement: PLACE_AMONG_REGISTERED ? "among-registered" : "in-game",
+    unregisteredLeftOut: cur.unregistered,
+    standings: cur.played.map((r) => ({
+      rank: r.rank, ign: r.p.ign, territory: r.p.territory, slot: r.p.slot, ...(PUBLIC ? {} : { userId: r.p.id }),
+      ...(cur.overall ? { matches: perRound(r.p), wwcd: r.wwcd } : { place: r.place }),
+      placementPoints: r.placePts, finishes: r.kills, total: r.total,
+    })),
+    dnp: cur.dnp.map((r) => ({ ign: r.p.ign, territory: r.p.territory, slot: r.p.slot, ...(PUBLIC ? {} : { userId: r.p.id }) })),
+  };
+}
+
+function slotsJson() {
+  return {
+    tournament: TOURNAMENT.name,
+    territories: ORDER.filter((t) => tab === "all" || t === tab).map((t) => ({
+      territory: t,
+      mode: TOURNAMENT.mode.toLowerCase(),
+      slots: byTerritory(t).map((p) => ({ slot: p.slot, ign: p.ign, ...(PUBLIC ? {} : { userId: p.id }) })),
+    })),
+  };
+}
+
+/* ---------- Excel export ----------
+   A .xlsx file is a zip of a few XML files. This writes one directly
+   (stored, no compression) so it works offline without a library. */
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(bytes) {
+  let c = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+function zipFiles(files) {
+  const enc = new TextEncoder();
+  const now = new Date();
+  const time = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+  const date = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  const locals = [], central = [];
+  let offset = 0;
+  for (const f of files) {
+    const name = enc.encode(f.name), data = enc.encode(f.data), crc = crc32(data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true);
+    lh.setUint16(10, time, true); lh.setUint16(12, date, true); lh.setUint32(14, crc, true);
+    lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, name.length, true);
+    locals.push(new Uint8Array(lh.buffer), name, data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true);
+    ch.setUint16(12, time, true); ch.setUint16(14, date, true); ch.setUint32(16, crc, true);
+    ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, name.length, true);
+    ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), name);
+    offset += 30 + name.length + data.length;
+  }
+  const cdSize = sum(central.map((a) => a.length));
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+  end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+  return new Blob([...locals, ...central, new Uint8Array(end.buffer)], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+}
+
+const xesc = (s) => String(s ?? "")
+  .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+  .replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const colName = (i) => { let s = ""; for (i++; i; i = Math.floor((i - 1) / 26)) s = String.fromCharCode(65 + ((i - 1) % 26)) + s; return s; };
+// Cell styles (see styles.xml below): 1 header, 2 title, 3 bold, 4 note
+const XL = { header: 1, title: 2, bold: 3, note: 4 };
+
+function sheetXml({ title, note, header, rows, widths, boldCol }) {
+  const cell = (v, r, c, s) => {
+    const ref = colName(c) + r, st = s ? ` s="${s}"` : "";
+    if (typeof v === "number") return `<c r="${ref}"${st}><v>${v}</v></c>`;
+    if (v === "" || v == null) return "";
+    return `<c r="${ref}"${st} t="inlineStr"><is><t xml:space="preserve">${xesc(v)}</t></is></c>`;
+  };
+  const out = [];
+  let r = 1;
+  out.push(`<row r="${r}">${cell(TOURNAMENT.name, r, 0, XL.title)}</row>`); r++;
+  out.push(`<row r="${r}">${cell(title, r, 0, XL.bold)}</row>`); r++;
+  if (note) { out.push(`<row r="${r}">${cell(note, r, 0, XL.note)}</row>`); r++; }
+  r++; // blank row before the table
+  const headRow = r;
+  out.push(`<row r="${r}">${header.map((h, c) => cell(h, r, c, XL.header)).join("")}</row>`); r++;
+  for (const row of rows) {
+    out.push(`<row r="${r}">${row.map((v, c) => cell(v, r, c, c === boldCol ? XL.bold : 0)).join("")}</row>`); r++;
+  }
+  const cols = widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join("");
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="${headRow}" topLeftCell="A${headRow + 1}" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${cols}</cols><sheetData>${out.join("")}</sheetData></worksheet>`;
+}
+
+function workbookBlob(sheets) {
+  const NS = "http://schemas.openxmlformats.org";
+  const safeName = (s) => s.replace(/[\[\]:*?/\\]/g, " ").slice(0, 31);
+  const files = [
+    { name: "[Content_Types].xml", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="${NS}/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")}</Types>` },
+    { name: "_rels/.rels", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="${NS}/package/2006/relationships"><Relationship Id="rId1" Type="${NS}/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>` },
+    { name: "xl/workbook.xml", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="${NS}/spreadsheetml/2006/main" xmlns:r="${NS}/officeDocument/2006/relationships"><sheets>${sheets.map((s, i) => `<sheet name="${xesc(safeName(s.name))}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("")}</sheets></workbook>` },
+    { name: "xl/_rels/workbook.xml.rels", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="${NS}/package/2006/relationships">${sheets.map((_, i) => `<Relationship Id="rId${i + 1}" Type="${NS}/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("")}<Relationship Id="rId${sheets.length + 1}" Type="${NS}/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>` },
+    { name: "xl/styles.xml", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="${NS}/spreadsheetml/2006/main"><fonts count="4"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="15"/><name val="Calibri"/></font><font><i/><sz val="10"/><color rgb="FF666666"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF6B800"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="5"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>` },
+    ...sheets.map((s, i) => ({ name: `xl/worksheets/sheet${i + 1}.xml`, data: sheetXml(s) })),
+  ];
+  return zipFiles(files);
+}
+
+function downloadBlob(blob, filename) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+const POINTS_NOTE = "BGMI points: #1 10, #2 6, #3 5, #4 4, #5 3, #6 2, #7–8 1, #9+ 0, +1 per finish. Unregistered players not counted.";
+
+function pointsExport() {
+  const cur = currentPoints();
+  if (!cur) return null;
+  const { played, dnp, overall, combined, rounds, unregistered } = cur;
+  const lead = (r) => [r.p.ign, ...(combined ? [r.p.territory] : []), r.p.slot];
+  const leadHead = ["IGN", ...(combined ? ["Territory"] : []), "Slot"];
+  const who = (p) => (PUBLIC ? [] : [p.name, p.phone]);
+  const whoHead = PUBLIC ? [] : ["Name", "Phone"];
+  const whoW = PUBLIC ? [] : [30, 14];
+  let header, rows, widths, boldCol;
+  if (!overall) {
+    header = ["Rank", ...leadHead, "Place", "Place Pts", "Finishes", "Total", ...whoHead];
+    rows = [
+      ...played.map((r) => [r.rank, ...lead(r), r.place, r.placePts, r.kills, r.total, ...who(r.p)]),
+      ...dnp.map((r) => ["DNP", ...lead(r), "", "", "", "", ...who(r.p)]),
+    ];
+    widths = [7, 24, ...(combined ? [10] : []), 6, 7, 10, 9, 8, ...whoW];
+  } else {
+    const per = (p) => rounds.flatMap((n) => {
+      const x = resultFor(p, n);
+      if (x.state === "played") return [placeOf(x.r), x.r.kills, pp(placeOf(x.r)) + x.r.kills];
+      return [x.state === "dnp" ? "DNP" : "–", "", ""];
+    });
+    header = ["Rank", ...leadHead, ...rounds.flatMap((n) => [`M${n} Place`, `M${n} Fin`, `M${n} Pts`]),
+      "WWCD", "Place Pts", "Finishes", "Total", ...whoHead];
+    rows = [
+      ...played.map((r) => [r.rank, ...lead(r), ...per(r.p), r.wwcd, r.placePts, r.kills, r.total, ...who(r.p)]),
+      ...dnp.map((r) => ["DNP", ...lead(r), ...per(r.p), "", "", "", "", ...who(r.p)]),
+    ];
+    widths = [7, 24, ...(combined ? [10] : []), 6, ...rounds.flatMap(() => [9, 8, 8]), 7, 10, 9, 8, ...whoW];
+  }
+  boldCol = header.indexOf("Total");
+  const note = `${played.length} played · ${dnp.length} did not play · ${unregistered} unregistered left out. ${POINTS_NOTE}`;
+  const scopeFile = combined ? "All" : tab;
+  const roundFile = overall ? "Overall" : `Match${round}`;
+  const extra = [...(!overall ? cur.maps : []), ...cur.dates.map((d) => fmtDate(d).replace(/\s+/g, ""))];
+  return {
+    filename: ["CodeStax", scopeFile, roundFile, ...extra, "Points"].join("-").replace(/\s+/g, "") + ".xlsx",
+    sheets: [{
+      name: [combined ? "All" : tab, overall ? "Overall" : `M${round}`].join(" "),
+      title: `${pointsTitle(cur)} – Points Table`, note, header, rows, widths, boldCol,
+    }],
+  };
+}
+
+function slotsExport() {
+  const ts = ORDER.filter((t) => tab === "all" || t === tab);
+  return {
+    filename: `CodeStax-Slot-List-${tab === "all" ? "All" : tab}.xlsx`,
+    sheets: ts.map((t) => ({
+      name: `${t} Slots`,
+      title: `${t} – Solo Slot List`,
+      note: `${byTerritory(t).length} players · slot 1 = earliest registration`,
+      header: PUBLIC ? ["Slot", "IGN"] : ["Slot", "IGN", "Name", "Phone", "Age", "Gender", "Agent", "Agent Phone", "Registered"],
+      rows: byTerritory(t).map((p) => PUBLIC ? [p.slot, p.ign]
+        : [p.slot, p.ign, p.name, p.phone, Number(p.age) || p.age, p.gender, p.agent, p.agentPhone, p.registered]),
+      widths: PUBLIC ? [6, 28] : [6, 24, 30, 14, 6, 8, 24, 14, 18],
+      boldCol: 1,
+    })),
+  };
+}
+
+const currentExport = () => (view === "points" ? pointsExport() : slotsExport());
+
+/* ---------- events ---------- */
+$("views").addEventListener("click", (e) => {
+  const b = e.target.closest(".view");
+  if (!b || b.dataset.view === view) return;
+  view = b.dataset.view;
+  store.set("cs-view", view);
+  renderAll();
+});
+
+$("tabs").addEventListener("click", (e) => {
+  const b = e.target.closest(".tab");
+  if (!b) return;
+  tab = b.dataset.tab;
+  store.set("cs-tab", tab);
+  fixRound();
+  renderAll();
+});
+
+$("rounds").addEventListener("click", (e) => {
+  const b = e.target.closest(".round");
+  if (!b || b.disabled) return;
+  round = b.dataset.round;
+  store.set("cs-round", round);
+  renderAll();
+});
+
+$("q").addEventListener("input", render);
+
+$("out").addEventListener("click", (e) => {
+  const c = e.target.closest(".cp");
+  if (c) { e.stopPropagation(); copyAndToast(c.dataset.copy, "IGN copied"); return; }
+  const el = e.target.closest("[data-id]");
+  if (el) openDetail(byId[el.dataset.id]);
+});
+$("out").addEventListener("keydown", (e) => {
+  const el = e.target.closest("[data-id]");
+  if (el && e.target === el && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openDetail(byId[el.dataset.id]); }
+});
+
+$("dlg").addEventListener("click", (e) => {
+  if (e.target === e.currentTarget || e.target.closest("[data-close]")) { $("dlg").close(); return; }
+  const c = e.target.closest("[data-copy]");
+  if (c) copyAndToast(c.dataset.copy, "IGN copied");
+});
+
+$("xlBtn").addEventListener("click", () => {
+  const x = currentExport();
+  if (!x) return;
+  downloadBlob(workbookBlob(x.sheets), x.filename);
+  toast("Excel downloaded");
+});
+
+function setMenu(open) {
+  $("copyMenu").hidden = !open;
+  $("copyBtn").setAttribute("aria-expanded", open);
+  if (open) $("copyMenu").querySelector("button").focus();
+}
+$("copyBtn").addEventListener("click", (e) => { e.stopPropagation(); setMenu($("copyMenu").hidden); });
+document.addEventListener("click", (e) => { if (!e.target.closest(".copywrap")) setMenu(false); });
+
+$("copyMenu").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-fmt]");
+  if (!b) return;
+  setMenu(false);
+  const json = b.dataset.fmt === "json";
+  if (view === "points") {
+    const out = json ? pointsJson() : pointsText();
+    if (out) copyAndToast(json ? JSON.stringify(out, null, 2) : out, json ? "Points JSON copied" : "Points table copied");
+  } else {
+    const out = json ? slotsJson() : slotListText();
+    if (out) copyAndToast(json ? JSON.stringify(out, null, 2) : out, json ? "Slot JSON copied" : `${visibleSlots().length} slots copied`);
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if ($("dlg").open) return;
+  if (e.key === "Escape" && !$("copyMenu").hidden) { setMenu(false); $("copyBtn").focus(); return; }
+  if (e.key === "/" && document.activeElement !== $("q")) { e.preventDefault(); $("q").focus(); }
+  if (e.key === "Escape" && document.activeElement === $("q")) { $("q").value = ""; render(); }
+});
+
+renderHeader();
+renderAll();
+</script>
+</body>
+</html>

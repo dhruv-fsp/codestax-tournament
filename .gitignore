@@ -1,6 +1,7 @@
 # Player data has real names and phone numbers. Keep it out of the repo.
 data/*.csv
-# The built page embeds that player data
-index.html
-# Exports
+# The full page embeds that player data. public/index.html is the safe hosted copy.
+/index.html
+# Exports and local junk
 *.xlsx
+__pycache__/
