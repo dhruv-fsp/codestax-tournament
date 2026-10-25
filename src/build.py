@@ -165,24 +165,70 @@ def load_matches(players):
     return out
 
 
+def load_finals(players):
+    """Squad finals: teams of 4 registered players, results per team slot."""
+    path = DATA_DIR / "finals.json"
+    if not path.exists():
+        return {"teams": [], "matches": []}
+    f = json.loads(path.read_text(encoding="utf-8"))
+    teams, seen = [], {}
+    for team in f["teams"]:
+        pool = [p for p in players if p["territory"] == team["territory"]]
+        exact = {p["ign"].lower(): p for p in pool}
+        loose = {}
+        for p in pool:
+            loose.setdefault(key(p["ign"]), []).append(p)
+        members = []
+        for ign in team["players"]:
+            p = exact.get(ign.lower())
+            if not p:
+                hits = loose.get(key(ign), [])
+                p = hits[0] if len(hits) == 1 else None
+            if not p:
+                sys.exit(f"finals slot {team['slot']}: '{ign}' is not a registered {team['territory']} player")
+            if p["id"] in seen:
+                sys.exit(f"finals: {p['ign']} is in slot {seen[p['id']]} and slot {team['slot']}")
+            seen[p["id"]] = team["slot"]
+            members.append(p["id"])
+        teams.append({"slot": team["slot"], "territory": team["territory"], "members": members})
+    slots = [tm["slot"] for tm in teams]
+    if len(slots) != len(set(slots)):
+        sys.exit("finals: a team slot is listed twice")
+
+    matches = []
+    for m in f.get("matches", []):
+        places = [r["place"] for r in m["results"]]
+        if len(places) != len(set(places)):
+            sys.exit(f"finals match {m['match']}: a placement is listed twice")
+        unknown = [r["slot"] for r in m["results"] if r["slot"] not in slots]
+        if unknown:
+            sys.exit(f"finals match {m['match']}: no team in slot(s) {unknown}")
+        matches.append({"match": m["match"], "date": m.get("date", ""), "map": m.get("map", ""),
+                        "results": [{"slot": r["slot"], "place": r["place"], "kills": int(r["kills"])} for r in m["results"]]})
+    print(f"finals: {len(teams)} teams, {sum(len(tm['members']) for tm in teams)} players, {len(matches)} matches")
+    return {"teams": teams, "matches": matches}
+
+
 def to_js(obj) -> str:
     return json.dumps(obj, ensure_ascii=False).replace("</", "<\\/")
 
 
-def render(players, matches, public: bool) -> str:
+def render(players, matches, finals, public: bool) -> str:
     html = TEMPLATE.read_text(encoding="utf-8")
     return (html.replace("/*DATA*/", to_js(players))
                 .replace("/*MATCHES*/", to_js(matches))
+                .replace("/*FINALS*/", to_js(finals))
                 .replace("/*PUBLIC*/false", "true" if public else "false"))
 
 
-def public_view(players, matches):
+def public_view(players, matches, finals):
     """Only territory, slot and IGN. Player ids become T13-05 style keys."""
     new_id = {p["id"]: f"{p['territory']}-{p['slot']:02d}" for p in players}
     pub_players = [{"id": new_id[p["id"]], "territory": p["territory"], "slot": p["slot"], "ign": p["ign"]}
                    for p in players]
     pub_matches = [{**m, "results": [{**r, "pid": new_id[r["pid"]]} for r in m["results"]]} for m in matches]
-    return pub_players, pub_matches
+    pub_finals = {**finals, "teams": [{**tm, "members": [new_id[i] for i in tm["members"]]} for tm in finals["teams"]]}
+    return pub_players, pub_matches, pub_finals
 
 
 def check_no_pii(html: str, players) -> None:
@@ -203,11 +249,12 @@ def check_no_pii(html: str, players) -> None:
 def main():
     players = load_players()
     matches = load_matches(players)
+    finals = load_finals(players)
 
-    OUT.write_text(render(players, matches, public=False), encoding="utf-8")
+    OUT.write_text(render(players, matches, finals, public=False), encoding="utf-8")
     print("wrote", OUT, "(full, local only)")
 
-    pub_html = render(*public_view(players, matches), public=True)
+    pub_html = render(*public_view(players, matches, finals), public=True)
     check_no_pii(pub_html, players)
     OUT_PUBLIC.parent.mkdir(exist_ok=True)
     OUT_PUBLIC.write_text(pub_html, encoding="utf-8")

@@ -349,6 +349,30 @@
   }
   #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+  /* ---------- squad teams ---------- */
+  .tabs[hidden] { display: none; }
+  .teams { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+  .team {
+    position: relative; min-width: 0;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+  }
+  .team::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--tc); }
+  .thd { display: flex; align-items: center; gap: 10px; padding: 12px 10px 10px 18px; border-bottom: 1px solid var(--line); }
+  .thd .tt { flex: 1; font-size: 13px; letter-spacing: .18em; }
+  .tm { list-style: none; margin: 0; padding: 6px 0 8px; counter-reset: m; }
+  .tm li {
+    counter-increment: m; display: flex; align-items: center; gap: 12px;
+    padding: 8px 14px 8px 18px; cursor: pointer; outline: none;
+    font-size: 19px; font-weight: 700; letter-spacing: .02em;
+  }
+  .tm li::before { content: counter(m); font: 500 22px/.8 var(--num); padding-top: 4px; color: var(--dim); min-width: 12px; }
+  .tm li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tm li:hover, .tm li:focus-visible { background: var(--panel-hi); }
+  .prow.fr { cursor: default; padding-top: 8px; padding-bottom: 8px; }
+  .pl small.mem { white-space: normal; text-transform: none; letter-spacing: .02em; font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .pmem { margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--muted); overflow-wrap: anywhere; }
+
   /* ---------- phones ---------- */
   @media (max-width: 640px) {
     .wrap { padding: 18px 14px 64px; }
@@ -376,7 +400,8 @@
     .btn { padding: 0 14px; letter-spacing: .1em; }
     .xl { padding: 0 12px; }
     .btn .long, .xl .long { display: none; }
-    .grid { grid-template-columns: 1fr; gap: 6px; }
+    .grid, .teams { grid-template-columns: 1fr; gap: 6px; }
+    .pmem { display: none; }
     .card { min-height: 60px; }
     .num { font-size: 38px; }
     .ign { font-size: 19px; }
@@ -445,7 +470,8 @@
   </header>
 
   <nav class="views" id="views" aria-label="View">
-    <button class="view" data-view="points">Points Table</button>
+    <button class="view" data-view="finals">Finals</button>
+    <button class="view" data-view="points">Solo Points</button>
     <button class="view" data-view="slots">Slot List</button>
   </nav>
 
@@ -481,6 +507,7 @@
 <script>
 const DATA = [{"id": "T13-01", "territory": "T13", "slot": 1, "ign": "BGMI1Æ146"}, {"id": "T13-02", "territory": "T13", "slot": 2, "ign": "NikhilPasw。62"}, {"id": "T13-03", "territory": "T13", "slot": 3, "ign": "PUBG2メ330"}, {"id": "T13-04", "territory": "T13", "slot": 4, "ign": "D17nikhil"}, {"id": "T13-05", "territory": "T13", "slot": 5, "ign": "ViratPagluĪ"}, {"id": "T13-06", "territory": "T13", "slot": 6, "ign": "sonar_786"}, {"id": "T13-07", "territory": "T13", "slot": 7, "ign": "wahiēhuēmeū"}, {"id": "T13-08", "territory": "T13", "slot": 8, "ign": "777Krrish"}, {"id": "T13-09", "territory": "T13", "slot": 9, "ign": "4MxRayquazaW"}, {"id": "T13-10", "territory": "T13", "slot": 10, "ign": "ZENxDELTA"}, {"id": "T13-11", "territory": "T13", "slot": 11, "ign": "Hilter0107"}, {"id": "T13-12", "territory": "T13", "slot": 12, "ign": "jatinvK"}, {"id": "T13-13", "territory": "T13", "slot": 13, "ign": "PUBG3789"}, {"id": "T13-14", "territory": "T13", "slot": 14, "ign": "YOUNGSEXYYYY"}, {"id": "T13-15", "territory": "T13", "slot": 15, "ign": "nishantyadv192"}, {"id": "T13-16", "territory": "T13", "slot": 16, "ign": "PUBG4335"}, {"id": "T13-17", "territory": "T13", "slot": 17, "ign": "×Cʜoʀ×Xㅤ"}, {"id": "T13-18", "territory": "T13", "slot": 18, "ign": "TAGJASMIN17"}, {"id": "T13-19", "territory": "T13", "slot": 19, "ign": "isjsjzjsuwj"}, {"id": "T13-20", "territory": "T13", "slot": 20, "ign": "Try Hard"}, {"id": "T13-21", "territory": "T13", "slot": 21, "ign": "hridayjais"}, {"id": "T13-22", "territory": "T13", "slot": 22, "ign": "Aqua_wizard"}, {"id": "T13-23", "territory": "T13", "slot": 23, "ign": "wtfkyascene"}, {"id": "T13-24", "territory": "T13", "slot": 24, "ign": "LÃDLÊ"}, {"id": "T13-25", "territory": "T13", "slot": 25, "ign": "itachinj11"}, {"id": "T13-26", "territory": "T13", "slot": 26, "ign": "『PAR么DOX』"}, {"id": "T13-27", "territory": "T13", "slot": 27, "ign": "kaku_0666"}, {"id": "T13-28", "territory": "T13", "slot": 28, "ign": "CØRE女Yash"}, {"id": "T13-29", "territory": "T13", "slot": 29, "ign": "TAGßCHILLI16"}, {"id": "T13-30", "territory": "T13", "slot": 30, "ign": "KC々MSAAD"}, {"id": "T13-31", "territory": "T13", "slot": 31, "ign": "akashyadav8429"}, {"id": "T13-32", "territory": "T13", "slot": 32, "ign": "GheeKHatam"}, {"id": "T13-33", "territory": "T13", "slot": 33, "ign": "VcSxSunyaaDON"}, {"id": "T13-34", "territory": "T13", "slot": 34, "ign": "luvansss"}, {"id": "T13-35", "territory": "T13", "slot": 35, "ign": "GxdlArnav9999"}, {"id": "T13-36", "territory": "T13", "slot": 36, "ign": "SwarajJaiswar"}, {"id": "T13-37", "territory": "T13", "slot": 37, "ign": "S12Kse14"}, {"id": "T13-38", "territory": "T13", "slot": 38, "ign": "wasteganehuyee"}, {"id": "T1-01", "territory": "T1", "slot": 1, "ign": "『NOXY』OG"}, {"id": "T1-02", "territory": "T1", "slot": 2, "ign": "AshfanJodHoKya"}, {"id": "T1-03", "territory": "T1", "slot": 3, "ign": "TeamBLxDyrax"}, {"id": "T1-04", "territory": "T1", "slot": 4, "ign": "SOULGOD0"}, {"id": "T1-05", "territory": "T1", "slot": 5, "ign": "SufiyanMan056"}, {"id": "T1-06", "territory": "T1", "slot": 6, "ign": "YuvrajKori886"}, {"id": "T1-07", "territory": "T1", "slot": 7, "ign": "CFxIBBU"}, {"id": "T1-08", "territory": "T1", "slot": 8, "ign": "F4Hxs4qlainNn"}, {"id": "T1-09", "territory": "T1", "slot": 9, "ign": "KaalChudduuuu"}, {"id": "T1-10", "territory": "T1", "slot": 10, "ign": "STHxIGRIS"}, {"id": "T1-11", "territory": "T1", "slot": 11, "ign": "Neymar11hu"}, {"id": "T1-12", "territory": "T1", "slot": 12, "ign": "TeamBLxGokuu"}, {"id": "T1-13", "territory": "T1", "slot": 13, "ign": "『LØST』"}, {"id": "T1-14", "territory": "T1", "slot": 14, "ign": "iM乛ÈVÌŁ"}, {"id": "T1-15", "territory": "T1", "slot": 15, "ign": "TeamBLxBACCHI"}, {"id": "T1-16", "territory": "T1", "slot": 16, "ign": "TEAMK70xFURKAN"}, {"id": "T1-17", "territory": "T1", "slot": 17, "ign": "GT么ZEN"}, {"id": "T1-18", "territory": "T1", "slot": 18, "ign": "××Arsh××A"}, {"id": "T1-19", "territory": "T1", "slot": 19, "ign": "TGxGaara"}, {"id": "T1-20", "territory": "T1", "slot": 20, "ign": "TGxAtoMic"}, {"id": "T1-21", "territory": "T1", "slot": 21, "ign": "TGxAngad"}, {"id": "T1-22", "territory": "T1", "slot": 22, "ign": "INVicTuS21"}, {"id": "T1-23", "territory": "T1", "slot": 23, "ign": "SapphireNEXTAR"}, {"id": "T1-24", "territory": "T1", "slot": 24, "ign": "乛٭ZORO乂"}, {"id": "T1-25", "territory": "T1", "slot": 25, "ign": "GT么Oyyyyy"}, {"id": "T1-26", "territory": "T1", "slot": 26, "ign": "GG彡VaMpiRe204"}, {"id": "T1-27", "territory": "T1", "slot": 27, "ign": "×ēSytheē"}, {"id": "T1-28", "territory": "T1", "slot": 28, "ign": "RAHULĒSOLOS"}, {"id": "T1-29", "territory": "T1", "slot": 29, "ign": "TGxNoxxy"}, {"id": "T1-30", "territory": "T1", "slot": 30, "ign": "BIL4LXD"}, {"id": "T1-31", "territory": "T1", "slot": 31, "ign": "GTxZEN"}, {"id": "T1-32", "territory": "T1", "slot": 32, "ign": "Rush3rrrfps"}, {"id": "T1-33", "territory": "T1", "slot": 33, "ign": "・VeLDorALaLa"}, {"id": "T1-34", "territory": "T1", "slot": 34, "ign": "RxSGod"}, {"id": "T1-35", "territory": "T1", "slot": 35, "ign": "・BeeruSLALA"}, {"id": "T1-36", "territory": "T1", "slot": 36, "ign": "JishanShah9"}, {"id": "T1-37", "territory": "T1", "slot": 37, "ign": "LXCIFER7"}, {"id": "T1-38", "territory": "T1", "slot": 38, "ign": "SEXYPARI69"}, {"id": "T1-39", "territory": "T1", "slot": 39, "ign": "CHalREEENOObbb"}, {"id": "T1-40", "territory": "T1", "slot": 40, "ign": "..SHAN"}];
 const MATCHES = [{"id": "T1-M1", "territory": "T1", "match": 1, "map": "Erangel", "date": "2026-10-25", "results": [{"pid": "T1-32", "place": 1, "kills": 3, "regPlace": 1}, {"pid": "T1-16", "place": 2, "kills": 1, "regPlace": 2}, {"pid": "T1-22", "place": 3, "kills": 6, "regPlace": 3}, {"pid": "T1-40", "place": 4, "kills": 1, "regPlace": 4}, {"pid": "T1-03", "place": 5, "kills": 3, "regPlace": 5}, {"pid": "T1-38", "place": 6, "kills": 1, "regPlace": 6}, {"pid": "T1-31", "place": 7, "kills": 0, "regPlace": 7}, {"pid": "T1-33", "place": 8, "kills": 1, "regPlace": 8}, {"pid": "T1-23", "place": 9, "kills": 2, "regPlace": 9}, {"pid": "T1-14", "place": 10, "kills": 0, "regPlace": 10}, {"pid": "T1-12", "place": 11, "kills": 2, "regPlace": 11}, {"pid": "T1-17", "place": 12, "kills": 1, "regPlace": 12}, {"pid": "T1-28", "place": 13, "kills": 0, "regPlace": 13}, {"pid": "T1-27", "place": 15, "kills": 1, "regPlace": 14}, {"pid": "T1-19", "place": 16, "kills": 0, "regPlace": 15}, {"pid": "T1-18", "place": 17, "kills": 0, "regPlace": 16}, {"pid": "T1-34", "place": 18, "kills": 0, "regPlace": 17}, {"pid": "T1-20", "place": 19, "kills": 4, "regPlace": 18}, {"pid": "T1-07", "place": 20, "kills": 0, "regPlace": 19}, {"pid": "T1-30", "place": 22, "kills": 0, "regPlace": 20}, {"pid": "T1-24", "place": 23, "kills": 0, "regPlace": 21}, {"pid": "T1-13", "place": 24, "kills": 0, "regPlace": 22}, {"pid": "T1-05", "place": 25, "kills": 2, "regPlace": 23}, {"pid": "T1-26", "place": 26, "kills": 0, "regPlace": 24}, {"pid": "T1-02", "place": 27, "kills": 1, "regPlace": 25}, {"pid": "T1-08", "place": 28, "kills": 0, "regPlace": 26}, {"pid": "T1-25", "place": 29, "kills": 0, "regPlace": 27}, {"pid": "T1-21", "place": 30, "kills": 0, "regPlace": 28}, {"pid": "T1-04", "place": 31, "kills": 0, "regPlace": 29}, {"pid": "T1-29", "place": 32, "kills": 1, "regPlace": 30}, {"pid": "T1-11", "place": 33, "kills": 1, "regPlace": 31}, {"pid": "T1-15", "place": 35, "kills": 0, "regPlace": 32}, {"pid": "T1-01", "place": 36, "kills": 0, "regPlace": 33}, {"pid": "T1-36", "place": 37, "kills": 0, "regPlace": 34}, {"pid": "T1-37", "place": 38, "kills": 0, "regPlace": 35}, {"pid": "T1-09", "place": 39, "kills": 0, "regPlace": 36}, {"pid": "T1-35", "place": 40, "kills": 0, "regPlace": 37}, {"pid": "T1-10", "place": 41, "kills": 0, "regPlace": 38}]}, {"id": "T13-M1", "territory": "T13", "match": 1, "map": "", "date": "2026-10-25", "results": [{"pid": "T13-37", "place": 1, "kills": 8, "regPlace": 1}, {"pid": "T13-33", "place": 2, "kills": 6, "regPlace": 2}, {"pid": "T13-05", "place": 3, "kills": 2, "regPlace": 3}, {"pid": "T13-20", "place": 4, "kills": 0, "regPlace": 4}, {"pid": "T13-09", "place": 5, "kills": 0, "regPlace": 5}, {"pid": "T13-10", "place": 8, "kills": 1, "regPlace": 6}, {"pid": "T13-15", "place": 9, "kills": 1, "regPlace": 7}, {"pid": "T13-32", "place": 10, "kills": 3, "regPlace": 8}, {"pid": "T13-11", "place": 11, "kills": 0, "regPlace": 9}, {"pid": "T13-27", "place": 12, "kills": 1, "regPlace": 10}, {"pid": "T13-25", "place": 13, "kills": 2, "regPlace": 11}, {"pid": "T13-17", "place": 14, "kills": 1, "regPlace": 12}, {"pid": "T13-02", "place": 15, "kills": 0, "regPlace": 13}, {"pid": "T13-24", "place": 16, "kills": 3, "regPlace": 14}, {"pid": "T13-06", "place": 17, "kills": 0, "regPlace": 15}, {"pid": "T13-23", "place": 18, "kills": 0, "regPlace": 16}, {"pid": "T13-34", "place": 19, "kills": 2, "regPlace": 17}, {"pid": "T13-12", "place": 20, "kills": 0, "regPlace": 18}, {"pid": "T13-38", "place": 21, "kills": 1, "regPlace": 19}, {"pid": "T13-08", "place": 22, "kills": 0, "regPlace": 20}, {"pid": "T13-01", "place": 23, "kills": 1, "regPlace": 21}, {"pid": "T13-35", "place": 24, "kills": 1, "regPlace": 22}, {"pid": "T13-30", "place": 25, "kills": 0, "regPlace": 23}, {"pid": "T13-29", "place": 26, "kills": 0, "regPlace": 24}, {"pid": "T13-04", "place": 27, "kills": 0, "regPlace": 25}, {"pid": "T13-28", "place": 28, "kills": 1, "regPlace": 26}, {"pid": "T13-22", "place": 30, "kills": 0, "regPlace": 27}, {"pid": "T13-26", "place": 31, "kills": 1, "regPlace": 28}, {"pid": "T13-14", "place": 32, "kills": 0, "regPlace": 29}, {"pid": "T13-31", "place": 34, "kills": 0, "regPlace": 30}, {"pid": "T13-18", "place": 35, "kills": 0, "regPlace": 31}, {"pid": "T13-19", "place": 36, "kills": 0, "regPlace": 32}, {"pid": "T13-21", "place": 38, "kills": 0, "regPlace": 33}, {"pid": "T13-16", "place": 41, "kills": 0, "regPlace": 34}, {"pid": "T13-36", "place": 42, "kills": 0, "regPlace": 35}]}, {"id": "T13-M2", "territory": "T13", "match": 2, "map": "", "date": "2026-10-25", "results": [{"pid": "T13-25", "place": 1, "kills": 1, "regPlace": 1}, {"pid": "T13-10", "place": 2, "kills": 4, "regPlace": 2}, {"pid": "T13-16", "place": 3, "kills": 6, "regPlace": 3}, {"pid": "T13-32", "place": 4, "kills": 0, "regPlace": 4}, {"pid": "T13-29", "place": 5, "kills": 4, "regPlace": 5}, {"pid": "T13-23", "place": 6, "kills": 0, "regPlace": 6}, {"pid": "T13-09", "place": 7, "kills": 3, "regPlace": 7}, {"pid": "T13-11", "place": 8, "kills": 0, "regPlace": 8}, {"pid": "T13-28", "place": 9, "kills": 3, "regPlace": 9}, {"pid": "T13-20", "place": 11, "kills": 2, "regPlace": 10}, {"pid": "T13-24", "place": 12, "kills": 0, "regPlace": 11}, {"pid": "T13-30", "place": 14, "kills": 0, "regPlace": 12}, {"pid": "T13-05", "place": 15, "kills": 2, "regPlace": 13}, {"pid": "T13-27", "place": 16, "kills": 2, "regPlace": 14}, {"pid": "T13-21", "place": 17, "kills": 0, "regPlace": 15}, {"pid": "T13-33", "place": 18, "kills": 1, "regPlace": 16}, {"pid": "T13-22", "place": 19, "kills": 3, "regPlace": 17}, {"pid": "T13-26", "place": 20, "kills": 0, "regPlace": 18}, {"pid": "T13-07", "place": 21, "kills": 0, "regPlace": 19}, {"pid": "T13-34", "place": 22, "kills": 0, "regPlace": 20}, {"pid": "T13-14", "place": 24, "kills": 0, "regPlace": 21}, {"pid": "T13-01", "place": 25, "kills": 0, "regPlace": 22}, {"pid": "T13-18", "place": 26, "kills": 0, "regPlace": 23}, {"pid": "T13-15", "place": 27, "kills": 0, "regPlace": 24}, {"pid": "T13-17", "place": 28, "kills": 1, "regPlace": 25}, {"pid": "T13-02", "place": 29, "kills": 0, "regPlace": 26}, {"pid": "T13-36", "place": 31, "kills": 0, "regPlace": 27}, {"pid": "T13-38", "place": 32, "kills": 0, "regPlace": 28}, {"pid": "T13-04", "place": 33, "kills": 0, "regPlace": 29}, {"pid": "T13-37", "place": 35, "kills": 0, "regPlace": 30}, {"pid": "T13-35", "place": 37, "kills": 0, "regPlace": 31}, {"pid": "T13-08", "place": 38, "kills": 0, "regPlace": 32}, {"pid": "T13-31", "place": 39, "kills": 0, "regPlace": 33}, {"pid": "T13-06", "place": 41, "kills": 0, "regPlace": 34}, {"pid": "T13-12", "place": 42, "kills": 0, "regPlace": 35}, {"pid": "T13-13", "place": 43, "kills": 0, "regPlace": 36}]}, {"id": "T1-M2", "territory": "T1", "match": 2, "map": "", "date": "2026-10-25", "results": [{"pid": "T1-22", "place": 1, "kills": 6, "regPlace": 1}, {"pid": "T1-38", "place": 2, "kills": 4, "regPlace": 2}, {"pid": "T1-12", "place": 3, "kills": 0, "regPlace": 3}, {"pid": "T1-30", "place": 4, "kills": 3, "regPlace": 4}, {"pid": "T1-27", "place": 5, "kills": 1, "regPlace": 5}, {"pid": "T1-37", "place": 6, "kills": 2, "regPlace": 6}, {"pid": "T1-19", "place": 7, "kills": 3, "regPlace": 7}, {"pid": "T1-10", "place": 8, "kills": 1, "regPlace": 8}, {"pid": "T1-05", "place": 9, "kills": 3, "regPlace": 9}, {"pid": "T1-09", "place": 10, "kills": 1, "regPlace": 10}, {"pid": "T1-26", "place": 11, "kills": 0, "regPlace": 11}, {"pid": "T1-23", "place": 12, "kills": 2, "regPlace": 12}, {"pid": "T1-28", "place": 13, "kills": 0, "regPlace": 13}, {"pid": "T1-40", "place": 14, "kills": 2, "regPlace": 14}, {"pid": "T1-11", "place": 15, "kills": 3, "regPlace": 15}, {"pid": "T1-20", "place": 16, "kills": 2, "regPlace": 16}, {"pid": "T1-17", "place": 17, "kills": 2, "regPlace": 17}, {"pid": "T1-13", "place": 18, "kills": 2, "regPlace": 18}, {"pid": "T1-07", "place": 19, "kills": 0, "regPlace": 19}, {"pid": "T1-15", "place": 20, "kills": 0, "regPlace": 20}, {"pid": "T1-31", "place": 21, "kills": 0, "regPlace": 21}, {"pid": "T1-39", "place": 22, "kills": 0, "regPlace": 22}, {"pid": "T1-03", "place": 23, "kills": 1, "regPlace": 23}, {"pid": "T1-16", "place": 24, "kills": 0, "regPlace": 24}, {"pid": "T1-34", "place": 25, "kills": 1, "regPlace": 25}, {"pid": "T1-29", "place": 26, "kills": 0, "regPlace": 26}, {"pid": "T1-35", "place": 27, "kills": 0, "regPlace": 27}, {"pid": "T1-32", "place": 28, "kills": 0, "regPlace": 28}, {"pid": "T1-36", "place": 29, "kills": 0, "regPlace": 29}, {"pid": "T1-18", "place": 30, "kills": 0, "regPlace": 30}, {"pid": "T1-08", "place": 32, "kills": 0, "regPlace": 31}, {"pid": "T1-25", "place": 33, "kills": 0, "regPlace": 32}, {"pid": "T1-14", "place": 35, "kills": 0, "regPlace": 33}, {"pid": "T1-02", "place": 37, "kills": 0, "regPlace": 34}, {"pid": "T1-04", "place": 38, "kills": 0, "regPlace": 35}, {"pid": "T1-24", "place": 40, "kills": 0, "regPlace": 36}, {"pid": "T1-21", "place": 41, "kills": 0, "regPlace": 37}, {"pid": "T1-33", "place": 42, "kills": 0, "regPlace": 38}]}];
+const FINALS = {"teams": [{"slot": 2, "territory": "T13", "members": ["T13-15", "T13-12", "T13-14", "T13-18"]}, {"slot": 3, "territory": "T13", "members": ["T13-29", "T13-38", "T13-01", "T13-30"]}, {"slot": 4, "territory": "T13", "members": ["T13-10", "T13-09", "T13-20", "T13-22"]}, {"slot": 5, "territory": "T13", "members": ["T13-25", "T13-23", "T13-02", "T13-08"]}, {"slot": 6, "territory": "T13", "members": ["T13-34", "T13-26", "T13-35", "T13-06"]}, {"slot": 7, "territory": "T13", "members": ["T13-27", "T13-11", "T13-21", "T13-07"]}, {"slot": 8, "territory": "T13", "members": ["T13-37", "T13-16", "T13-28", "T13-24"]}, {"slot": 9, "territory": "T13", "members": ["T13-33", "T13-05", "T13-32", "T13-17"]}, {"slot": 17, "territory": "T1", "members": ["T1-40", "T1-05", "T1-18", "T1-24"]}, {"slot": 18, "territory": "T1", "members": ["T1-38", "T1-37", "T1-23", "T1-39"]}, {"slot": 19, "territory": "T1", "members": ["T1-27", "T1-33", "T1-13", "T1-28"]}, {"slot": 20, "territory": "T1", "members": ["T1-16", "T1-02", "T1-14", "T1-07"]}, {"slot": 21, "territory": "T1", "members": ["T1-22", "T1-30", "T1-10", "T1-31"]}, {"slot": 22, "territory": "T1", "members": ["T1-32", "T1-11", "T1-09", "T1-34"]}, {"slot": 23, "territory": "T1", "members": ["T1-12", "T1-03", "T1-17", "T1-15"]}, {"slot": 24, "territory": "T1", "members": ["T1-20", "T1-19", "T1-29", "T1-26"]}], "matches": []};
 // Public build (for hosting): players carry only territory, slot and IGN. No names, phones or agents.
 const PUBLIC = true;
 const TOURNAMENT = { name: "Code Stax Solo Tournament", game: "BGMI", mode: "Solo" };
@@ -539,8 +566,8 @@ function resultFor(p, n) {
 }
 
 /* ---------- state ---------- */
-let view = store.get("cs2-view", "points");
-if (!["points", "slots"].includes(view)) view = "points";
+let view = store.get("cs3-view", "finals");
+if (!["finals", "points", "slots"].includes(view)) view = "finals";
 let tab = store.get("cs2-tab", ORDER[0]);
 if (tab !== "all" && !ORDER.includes(tab)) tab = ORDER[0];
 let round = store.get("cs2-round", "overall");
@@ -621,7 +648,7 @@ function renderHeader() {
 
 function renderViews() {
   document.querySelectorAll(".view").forEach((b) => b.setAttribute("aria-pressed", b.dataset.view === view));
-  $("copyWhat").textContent = view === "points" ? " table" : " list";
+  $("copyWhat").textContent = view === "slots" ? " list" : view === "finals" && finRound === "teams" ? " teams" : " table";
   $("copyBtn").title = view === "points" ? "Copy the points table" : "Copy the slot list";
 }
 
@@ -636,12 +663,14 @@ function renderTabs() {
         <span class="t">${label}</span>${sub}</button>`;
     })
     .join("");
+  $("tabs").hidden = view === "finals";  // finals is one combined lobby
   const r = $("rounds");
-  const opts = view === "points" ? roundOptions() : [];
+  const opts = view === "points" ? roundOptions() : view === "finals" ? finalsOptions() : [];
+  const current = view === "finals" ? finRound : round;
   r.hidden = !opts.length;
-  r.style.setProperty("--tc", TC[tab]);
+  r.style.setProperty("--tc", view === "finals" ? "var(--accent)" : TC[tab]);
   r.innerHTML = opts
-    .map((o) => `<button class="round" data-round="${o.id}" aria-pressed="${o.id === round}" ${o.disabled ? "disabled" : ""}><b>${o.label}</b></button>`)
+    .map((o) => `<button class="round" data-round="${o.id}" aria-pressed="${o.id === current}" ${o.disabled ? "disabled" : ""}><b>${o.label}</b></button>`)
     .join("");
 }
 
@@ -780,9 +809,236 @@ function renderPoints() {
 
 function render() {
   renderViews();
-  view === "points" ? renderPoints() : renderSlots();
+  if (view === "finals") renderFinals();
+  else if (view === "points") renderPoints();
+  else renderSlots();
 }
 function renderAll() { renderTabs(); render(); }
+
+/* ---------- squad finals ---------- */
+const FIN_ROUNDS = 2;
+const teamOfPlayer = Object.fromEntries(FINALS.teams.flatMap((tm) => tm.members.map((id) => [id, tm.slot])));
+const finMatch = (n) => FINALS.matches.find((m) => m.match === n);
+const finRoundNumbers = () => range(Math.max(FIN_ROUNDS, ...FINALS.matches.map((m) => m.match)));
+let finRound = store.get("cs3-fin", "teams");
+
+function finalsOptions() {
+  return [
+    { id: "teams", label: "Teams" },
+    { id: "overall", label: "Overall", disabled: !FINALS.matches.length },
+    ...finRoundNumbers().map((i) => ({ id: String(i), label: `Match ${i}`, disabled: !finMatch(i) })),
+  ];
+}
+function fixFinRound() {
+  if (!finalsOptions().some((o) => o.id === finRound && !o.disabled)) finRound = "teams";
+}
+fixFinRound();
+
+const members = (tm) => tm.members.map((id) => byId[id]);
+const memberIgns = (tm) => members(tm).map((p) => p.ign);
+const teamName = (tm) => `Slot ${pad(tm.slot)}`;
+const teamMatches = (tm, q) => !q || String(tm.slot) === q || pad(tm.slot) === q || members(tm).some((p) => norm(p.ign).includes(q));
+const finResult = (tm, n) => { const m = finMatch(n); return { m, r: m ? m.results.find((x) => x.slot === tm.slot) : null }; };
+
+function teamCard(tm, q) {
+  return `<div class="team" style="--tc:${TC[tm.territory]}">
+    <div class="thd"><span class="num">${pad(tm.slot)}</span><span class="tt">${tm.territory}</span>
+      <button class="cp" data-copy="${esc(memberIgns(tm).join(", "))}" data-msg="Team copied" title="Copy team" aria-label="Copy team ${tm.slot}">${ICON_COPY}</button></div>
+    <ol class="tm">${members(tm).map((p) => `<li role="button" tabindex="0" data-id="${esc(p.id)}"><span>${highlight(p.ign, q)}</span></li>`).join("")}</ol>
+  </div>`;
+}
+
+/* Same order as the solo table: total, placement points, finishes, best placement. */
+function finStandings(ms) {
+  const rows = FINALS.teams.map((tm) => {
+    const res = ms.slice().sort((a, b) => a.match - b.match).map((m) => m.results.find((r) => r.slot === tm.slot)).filter(Boolean);
+    const placePts = sum(res.map((r) => pp(r.place)));
+    const kills = sum(res.map((r) => r.kills));
+    return {
+      t: tm, played: res.length, placePts, kills, total: placePts + kills,
+      wwcd: res.filter((r) => r.place === 1).length,
+      place: res.length ? res[res.length - 1].place : null,
+      places: res.map((r) => r.place).sort((a, b) => a - b),
+    };
+  });
+  const played = rows.filter((r) => r.played)
+    .sort((a, b) => b.total - a.total || b.placePts - a.placePts || b.kills - a.kills || byPlaces(a, b) || a.t.slot - b.t.slot);
+  played.forEach((r, i) => (r.rank = i + 1));
+  return { played, dnp: rows.filter((r) => !r.played) };
+}
+
+function currentFinals() {
+  if (finRound === "teams") return null;
+  const overall = finRound === "overall";
+  const ms = overall ? FINALS.matches : [finMatch(Number(finRound))].filter(Boolean);
+  if (!ms.length) return null;
+  const { played, dnp } = finStandings(ms);
+  return {
+    ms, played, dnp, overall,
+    title: overall ? "Squad Finals · Overall" : `Squad Finals · Match ${finRound}`,
+    rounds: overall ? finRoundNumbers() : [Number(finRound)],
+    dates: uniq(ms.map((m) => m.date).filter(Boolean)).sort(),
+  };
+}
+
+function finRoundCell(tm, n) {
+  const { m, r } = finResult(tm, n);
+  if (!m) return `<span class="c muted">–</span>`;
+  if (!r) return `<span class="c muted">DNP</span>`;
+  return `<span class="c" title="#${r.place} · ${r.kills} fin">${pp(r.place) + r.kills}<small>#${r.place}</small></span>`;
+}
+
+function frow(r, cur, q) {
+  const rc = r.played && r.rank <= 3 ? `--rc:${MEDAL[r.rank]};` : "";
+  const head = `<span class="rk">${r.played ? pad(r.rank) : "—"}</span>
+    <span class="pl"><b>${teamName(r.t)} ${terrTag(r.t)}</b><small class="mem">${members(r.t).map((p) => highlight(p.ign, q)).join(" · ")}</small></span>`;
+  const tot = `<span class="tot">${r.played ? r.total : "DNP"}</span>`;
+  const style = `${rc}--tc:${TC[r.t.territory]};--n:${cur.rounds.length}`;
+  if (cur.overall) {
+    return `<div class="prow fr o${r.played ? "" : " dnp"}" style="${style}">${head}${cur.rounds.map((n) => finRoundCell(r.t, n)).join("")}
+      <span class="c hf ${r.kills ? "" : "muted"}">${r.played ? r.kills : "—"}</span>${tot}</div>`;
+  }
+  return `<div class="prow fr m${r.played ? "" : " dnp"}" style="${style}">${head}
+    <span class="c ${r.played && pp(r.place) ? "hot" : "muted"}">${r.played ? `#${r.place}` : "—"}</span>
+    <span class="c hm ${r.placePts ? "" : "muted"}">${r.played ? r.placePts : "—"}</span>
+    <span class="c ${r.kills ? "" : "muted"}">${r.played ? r.kills : "—"}</span>${tot}</div>`;
+}
+
+function fpod(r, cur) {
+  const badge = cur.overall ? (r.wwcd ? `${r.wwcd}× WWCD` : "") : r.place === 1 ? "WWCD" : "";
+  const what = cur.overall ? `${r.played} match${r.played > 1 ? "es" : ""}` : `#${r.place} place`;
+  return `<div class="pod r${r.rank}" style="--mc:${MEDAL[r.rank]};--mcs:${MEDAL_S[r.rank]};cursor:default">
+    ${badge ? `<span class="wwcd">${badge}</span>` : ""}
+    <div class="medal">${r.rank}<sup>${SUFFIX[r.rank]}</sup></div>
+    <div class="pinfo">
+      <div class="pign">${teamName(r.t)} ${terrTag(r.t)}</div>
+      <div class="psub">${what} · ${r.kills} fin</div>
+      <div class="pmem">${memberIgns(r.t).map(esc).join(" · ")}</div>
+    </div>
+    <div class="ptot"><b>${r.total}</b>PTS</div>
+  </div>`;
+}
+
+const LEGEND = `<div class="legend"><span class="lt">Points</span>
+  ${[["#1", 10], ["#2", 6], ["#3", 5], ["#4", 4], ["#5", 3], ["#6", 2], ["#7–8", 1], ["#9+", 0], ["Finish", "+1"]]
+    .map(([k, v]) => `<span class="lg">${k}<b>${v}</b></span>`).join("")}</div>`;
+
+function renderFinals() {
+  const q = query();
+  if (finRound === "teams") {
+    let html = "";
+    for (const terr of ORDER) {
+      const list = FINALS.teams.filter((tm) => tm.territory === terr && teamMatches(tm, q));
+      if (!list.length) continue;
+      html += `<section class="group" style="--tc:${TC[terr]}">
+        <div class="ghead"><span class="stripe"></span><h2>${terr}<em> · Teams</em></h2><span class="rule"></span></div>
+        <div class="teams">${list.map((tm) => teamCard(tm, q)).join("")}</div></section>`;
+    }
+    if (!FINALS.teams.length) html = `<div class="group"><div class="empty">No teams yet</div></div>`;
+    else if (!html) html = `<div class="group"><div class="empty">No team matches “${esc($("q").value.trim())}”</div></div>`;
+    $("out").innerHTML = html;
+    $("count").innerHTML = `<b>${FINALS.teams.filter((tm) => teamMatches(tm, q)).length}</b> / ${FINALS.teams.length}`;
+    return;
+  }
+  const cur = currentFinals();
+  if (!cur) {
+    $("out").innerHTML = `<div class="group"><div class="empty">No results yet</div></div>`;
+    $("count").textContent = "";
+    return;
+  }
+  const shownPlayed = cur.played.filter((r) => teamMatches(r.t, q));
+  const shownDnp = cur.dnp.filter((r) => teamMatches(r.t, q));
+  let html = `<section class="group" style="--tc:var(--accent)">
+    <div class="ghead"><span class="stripe"></span><h2>Finals<em> · ${cur.overall ? "Overall" : `Match ${finRound}`}</em></h2><span class="rule"></span></div>`;
+  if (!q && cur.played.length >= 3) html += `<div class="podium">${[cur.played[1], cur.played[0], cur.played[2]].map((r) => fpod(r, cur)).join("")}</div>`;
+  if (!shownPlayed.length && !shownDnp.length) {
+    html += `<div class="empty">No team matches “${esc($("q").value.trim())}”</div>`;
+  } else {
+    const headCells = cur.overall
+      ? `${cur.rounds.map((n) => `<span class="c">M${n}</span>`).join("")}<span class="c hf">Fin</span>`
+      : `<span class="c">Place</span><span class="c hm">Place pts</span><span class="c">Fin</span>`;
+    html += `<div class="ptable">
+      <div class="prow head ${cur.overall ? "o" : "m"}" style="--n:${cur.rounds.length}"><span>#</span><span>Team</span>${headCells}<span class="tot">Total</span></div>
+      ${shownPlayed.map((r) => frow(r, cur, q)).join("")}
+      ${shownDnp.length ? `<div class="psep">Did not play · ${shownDnp.length}</div>${shownDnp.map((r) => frow(r, cur, q)).join("")}` : ""}
+    </div>`;
+  }
+  $("out").innerHTML = html + LEGEND + `</section>`;
+  $("count").innerHTML = `<b>${shownPlayed.length + shownDnp.length}</b> / ${FINALS.teams.length}`;
+}
+
+function finRoundSummary(r, cur) {
+  return cur.rounds.map((n) => {
+    const { m, r: x } = finResult(r.t, n);
+    return `M${n} ${x ? pp(x.place) + x.kills : m ? "DNP" : "–"}`;
+  }).join(", ");
+}
+
+function finalsText() {
+  if (finRound === "teams") {
+    return [TOURNAMENT.name, "Squad Finals – Teams", ...ORDER.flatMap((terr) => ["", terr,
+      ...FINALS.teams.filter((tm) => tm.territory === terr).map((tm) => `Slot ${pad(tm.slot)}: ${memberIgns(tm).join(", ")}`)])].join("\n");
+  }
+  const cur = currentFinals();
+  if (!cur) return "";
+  const lines = cur.played.map((r) => `${pad(r.rank)}. Slot ${pad(r.t.slot)} (${r.t.territory}) – ${r.total} pts (${
+    cur.overall ? `${finRoundSummary(r, cur)}, ${r.kills} fin` : `#${r.place}, ${r.kills} fin`})`);
+  const when = cur.dates.length ? ` · ${cur.dates.map((d) => fmtDate(d, true)).join(", ")}` : "";
+  return [TOURNAMENT.name, `${cur.title}${when} – Points Table`, "", ...lines].join("\n");
+}
+
+function finalsJson() {
+  if (finRound === "teams") {
+    return { tournament: TOURNAMENT.name, stage: "squad finals",
+      teams: FINALS.teams.map((tm) => ({ slot: tm.slot, territory: tm.territory, players: memberIgns(tm) })) };
+  }
+  const cur = currentFinals();
+  if (!cur) return null;
+  return {
+    tournament: TOURNAMENT.name, stage: "squad finals", match: cur.overall ? "overall" : Number(finRound), dates: cur.dates,
+    pointsSystem: { placement: PLACE_PTS, otherPlaces: 0, perFinish: 1 },
+    standings: cur.played.map((r) => ({
+      rank: r.rank, slot: r.t.slot, territory: r.t.territory, players: memberIgns(r.t),
+      ...(cur.overall
+        ? { matches: cur.rounds.map((n) => { const { m, r: x } = finResult(r.t, n);
+            return x ? { match: n, place: x.place, finishes: x.kills, points: pp(x.place) + x.kills } : { match: n, [m ? "dnp" : "upcoming"]: true }; }) }
+        : { place: r.place }),
+      placementPoints: r.placePts, finishes: r.kills, total: r.total,
+    })),
+    dnp: cur.dnp.map((r) => ({ slot: r.t.slot, territory: r.t.territory })),
+  };
+}
+
+function finalsExport() {
+  if (finRound === "teams") {
+    return { filename: "CodeStax-Finals-Teams.xlsx", sheets: [{
+      name: "Teams", title: "Squad Finals – Teams", note: `${FINALS.teams.length} teams`,
+      header: ["Slot", "Territory", "Player 1", "Player 2", "Player 3", "Player 4"],
+      rows: FINALS.teams.map((tm) => [tm.slot, tm.territory, ...memberIgns(tm)]),
+      widths: [6, 10, 22, 22, 22, 22], boldCol: 0 }] };
+  }
+  const cur = currentFinals();
+  if (!cur) return null;
+  const lead = (r) => [r.t.slot, r.t.territory, memberIgns(r.t).join(", ")];
+  let header, rows, widths;
+  if (!cur.overall) {
+    header = ["Rank", "Slot", "Territory", "Players", "Place", "Place Pts", "Finishes", "Total"];
+    rows = [...cur.played.map((r) => [r.rank, ...lead(r), r.place, r.placePts, r.kills, r.total]),
+            ...cur.dnp.map((r) => ["DNP", ...lead(r), "", "", "", ""])];
+    widths = [7, 6, 10, 60, 7, 10, 9, 8];
+  } else {
+    const per = (tm) => cur.rounds.flatMap((n) => { const { m, r: x } = finResult(tm, n);
+      return x ? [x.place, x.kills, pp(x.place) + x.kills] : [m ? "DNP" : "–", "", ""]; });
+    header = ["Rank", "Slot", "Territory", "Players", ...cur.rounds.flatMap((n) => [`M${n} Place`, `M${n} Fin`, `M${n} Pts`]),
+              "WWCD", "Place Pts", "Finishes", "Total"];
+    rows = [...cur.played.map((r) => [r.rank, ...lead(r), ...per(r.t), r.wwcd, r.placePts, r.kills, r.total]),
+            ...cur.dnp.map((r) => ["DNP", ...lead(r), ...per(r.t), "", "", "", ""])];
+    widths = [7, 6, 10, 60, ...cur.rounds.flatMap(() => [9, 8, 8]), 7, 10, 9, 8];
+  }
+  return { filename: `CodeStax-Finals-${cur.overall ? "Overall" : `Match${finRound}`}-Points.xlsx`, sheets: [{
+    name: cur.overall ? "Finals Overall" : `Finals M${finRound}`, title: `${cur.title} – Points Table`,
+    note: POINTS_NOTE, header, rows, widths, boldCol: header.indexOf("Total") }] };
+}
 
 /* ---------- details dialog ---------- */
 function openDetail(p) {
@@ -803,6 +1059,7 @@ function openDetail(p) {
     </div>
     <div class="fields">
       ${results.length ? f("Results", results.join("<br>"), true) : PUBLIC ? f("Results", "No matches played yet", true) : ""}
+      ${teamOfPlayer[p.id] ? f("Squad finals", `Team slot ${pad(teamOfPlayer[p.id])}`, true) : ""}
       ${PUBLIC ? "" : `
       ${f("Name", esc(p.name), true)}
       ${f("Phone", p.phone ? `<a href="tel:${esc(p.phone)}">${esc(p.phone)}</a>` : "")}
@@ -1090,14 +1347,14 @@ function slotsExport() {
   };
 }
 
-const currentExport = () => (view === "points" ? pointsExport() : slotsExport());
+const currentExport = () => (view === "finals" ? finalsExport() : view === "points" ? pointsExport() : slotsExport());
 
 /* ---------- events ---------- */
 $("views").addEventListener("click", (e) => {
   const b = e.target.closest(".view");
   if (!b || b.dataset.view === view) return;
   view = b.dataset.view;
-  store.set("cs2-view", view);
+  store.set("cs3-view", view);
   renderAll();
 });
 
@@ -1115,6 +1372,7 @@ $("tabs").addEventListener("click", (e) => {
 $("rounds").addEventListener("click", (e) => {
   const b = e.target.closest(".round");
   if (!b || b.disabled) return;
+  if (view === "finals") { finRound = b.dataset.round; store.set("cs3-fin", finRound); renderAll(); return; }
   round = b.dataset.round;
   store.set("cs2-round", round);
   renderAll();
@@ -1124,7 +1382,7 @@ $("q").addEventListener("input", render);
 
 $("out").addEventListener("click", (e) => {
   const c = e.target.closest(".cp");
-  if (c) { e.stopPropagation(); copyAndToast(c.dataset.copy, "IGN copied"); return; }
+  if (c) { e.stopPropagation(); copyAndToast(c.dataset.copy, c.dataset.msg || "IGN copied"); return; }
   const el = e.target.closest("[data-id]");
   if (el) openDetail(byId[el.dataset.id]);
 });
@@ -1159,7 +1417,10 @@ $("copyMenu").addEventListener("click", (e) => {
   if (!b) return;
   setMenu(false);
   const json = b.dataset.fmt === "json";
-  if (view === "points") {
+  if (view === "finals") {
+    const out = json ? finalsJson() : finalsText();
+    if (out) copyAndToast(json ? JSON.stringify(out, null, 2) : out, json ? "Finals JSON copied" : "Finals copied");
+  } else if (view === "points") {
     const out = json ? pointsJson() : pointsText();
     if (out) copyAndToast(json ? JSON.stringify(out, null, 2) : out, json ? "Points JSON copied" : "Points table copied");
   } else {

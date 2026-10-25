@@ -56,3 +56,14 @@ Add an entry to `data/matches.json` with the place, in-game IGN and finishes for
 Players are matched to the registered list by IGN. When the game shows an IGN differently,
 add `"slot": <registered slot>` to link it. Anyone not matched to the list is ignored.
 The build prints who was matched, linked, left out and missing, so check that output.
+
+## Squad finals
+
+`data/finals.json` holds the 16 squad teams (4 registered players each, team slots 2-9 for T13 and 17-24 for T1)
+and the finals results. Add each finals match under `matches` with one entry per team:
+
+```json
+{ "match": 1, "date": "2026-10-25", "results": [ { "slot": 5, "place": 1, "kills": 12 } ] }
+```
+
+Points are the same as solo: placement points plus 1 per team finish.
