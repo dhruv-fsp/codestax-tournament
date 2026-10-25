@@ -489,8 +489,8 @@ const MATCHES_PER_TERRITORY = 2;
 // BGMI placement points; every finish is +1
 const PLACE_PTS = { 1: 10, 2: 6, 3: 5, 4: 4, 5: 3, 6: 2, 7: 1, 8: 1 };
 const pp = (place) => PLACE_PTS[place] || 0;
-// false: placement = in-game finish position (unregistered players still take up places).
-// true:  placement is re-counted among registered players only.
+// false: placement = in-game finish position.
+// true:  placement is re-counted among listed players only.
 const PLACE_AMONG_REGISTERED = false;
 const placeOf = (r) => (PLACE_AMONG_REGISTERED ? r.regPlace : r.place);
 
@@ -586,7 +586,17 @@ function matches(p, q) {
 const query = () => norm($("q").value.trim());
 
 /* Standings for a set of players over a set of matches.
-   Tie-break: total, WWCDs, placement points, finishes, then placement in the latest match. */
+   Order: total, then placement points, then finishes, then best placement (#3 beats #10),
+   then next best placement, and so on. Every player gets their own rank. */
+// Better survival wins: compare best placements first, then the next best; a missing match counts as worst.
+function byPlaces(a, b) {
+  for (let i = 0; i < Math.max(a.places.length, b.places.length); i++) {
+    const x = a.places[i] ?? Infinity, y = b.places[i] ?? Infinity;
+    if (x !== y) return x - y;
+  }
+  return 0;
+}
+
 function standings(players, ms) {
   const rows = players.map((p) => {
     const res = ms
@@ -600,11 +610,13 @@ function standings(players, ms) {
       p, played: res.length, placePts, kills, total: placePts + kills,
       wwcd: res.filter((r) => placeOf(r) === 1).length,
       place: res.length ? placeOf(res[res.length - 1]) : null,
+      places: res.map((r) => placeOf(r)).sort((a, b) => a - b),
     };
   });
   const played = rows
     .filter((r) => r.played)
-    .sort((a, b) => b.total - a.total || b.wwcd - a.wwcd || b.placePts - a.placePts || b.kills - a.kills || a.place - b.place);
+    .sort((a, b) => b.total - a.total || b.placePts - a.placePts || b.kills - a.kills || byPlaces(a, b)
+      || (a.p.ign < b.p.ign ? -1 : a.p.ign > b.p.ign ? 1 : 0));
   played.forEach((r, i) => (r.rank = i + 1));
   return { played, dnp: rows.filter((r) => !r.played) };
 }
@@ -694,7 +706,6 @@ function currentPoints() {
     maps: uniq(ms.map((m) => m.map).filter(Boolean)),
     dates: uniq(ms.map((m) => m.date).filter(Boolean)).sort(),
     rounds: overall ? roundNumbers(tab) : [Number(round)],
-    unregistered: sum(ms.map((m) => m.unregistered || 0)),
   };
 }
 
@@ -750,7 +761,7 @@ function renderPoints() {
     $("count").textContent = "";
     return;
   }
-  const { played, dnp, overall, rounds, maps, dates, unregistered } = cur;
+  const { played, dnp, overall, rounds, maps, dates } = cur;
   const q = query();
   const shownPlayed = played.filter((r) => matches(r.p, q));
   const shownDnp = dnp.filter((r) => matches(r.p, q));
@@ -762,7 +773,7 @@ function renderPoints() {
 
   let html = `<section class="group" style="--tc:${TC[tab]}">
     <div class="ghead"><span class="stripe"></span><h2>${scopeHtml}<em> · ${overall ? "Overall" : `Match ${round}`}</em></h2>${chips}<span class="rule"></span></div>
-    <div class="msub"><b>${played.length}</b> played · <b>${dnp.length}</b> did not play${unregistered ? ` · ${unregistered} unregistered left out` : ""}</div>`;
+    <div class="msub"><b>${played.length}</b> played · <b>${dnp.length}</b> did not play</div>`;
 
   if (!q && played.length >= 3) html += `<div class="podium">${[played[1], played[0], played[2]].map((r) => pod(r, cur)).join("")}</div>`;
 
@@ -784,7 +795,7 @@ function renderPoints() {
         .map(([k, v]) => `<span class="lg">${k}<b>${v}</b></span>`).join("")}
     </div>
     <div class="note">BGMI points system. ${PLACE_AMONG_REGISTERED ? "Placement is counted among registered players only." : "Placement is the in-game finish position."}
-      Unregistered players are not counted. Ties go to WWCDs, then placement points, then finishes.
+      Ties go to placement points, then finishes, then the best placement (#3 beats #10).
       ${overall ? "M1 / M2 show points with the in-game place underneath." : ""}</div>
   </section>`;
 
@@ -912,7 +923,6 @@ function pointsJson() {
     dates: cur.dates,
     pointsSystem: { placement: PLACE_PTS, otherPlaces: 0, perFinish: 1 },
     placement: PLACE_AMONG_REGISTERED ? "among-registered" : "in-game",
-    unregisteredLeftOut: cur.unregistered,
     standings: cur.played.map((r) => ({
       rank: r.rank, ign: r.p.ign, territory: r.p.territory, slot: r.p.slot, ...(PUBLIC ? {} : { userId: r.p.id }),
       ...(cur.overall ? { matches: perRound(r.p), wwcd: r.wwcd } : { place: r.place }),
@@ -1041,12 +1051,12 @@ function downloadBlob(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
 
-const POINTS_NOTE = "BGMI points: #1 10, #2 6, #3 5, #4 4, #5 3, #6 2, #7–8 1, #9+ 0, +1 per finish. Unregistered players not counted.";
+const POINTS_NOTE = "BGMI points: #1 10, #2 6, #3 5, #4 4, #5 3, #6 2, #7–8 1, #9+ 0, +1 per finish.";
 
 function pointsExport() {
   const cur = currentPoints();
   if (!cur) return null;
-  const { played, dnp, overall, combined, rounds, unregistered } = cur;
+  const { played, dnp, overall, combined, rounds } = cur;
   const lead = (r) => [r.p.ign, ...(combined ? [r.p.territory] : []), r.p.slot];
   const leadHead = ["IGN", ...(combined ? ["Territory"] : []), "Slot"];
   const who = (p) => (PUBLIC ? [] : [p.name, p.phone]);
@@ -1075,7 +1085,7 @@ function pointsExport() {
     widths = [7, 24, ...(combined ? [10] : []), 6, ...rounds.flatMap(() => [9, 8, 8]), 7, 10, 9, 8, ...whoW];
   }
   boldCol = header.indexOf("Total");
-  const note = `${played.length} played · ${dnp.length} did not play · ${unregistered} unregistered left out. ${POINTS_NOTE}`;
+  const note = `${played.length} played · ${dnp.length} did not play. ${POINTS_NOTE}`;
   const scopeFile = combined ? "All" : tab;
   const roundFile = overall ? "Overall" : `Match${round}`;
   const extra = [...(!overall ? cur.maps : []), ...cur.dates.map((d) => fmtDate(d).replace(/\s+/g, ""))];

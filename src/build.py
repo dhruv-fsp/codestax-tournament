@@ -160,7 +160,7 @@ def load_matches(players):
         out.append({
             "id": m["id"], "territory": m["territory"], "match": m["match"],
             "map": m.get("map", ""), "date": m.get("date", ""),
-            "results": results, "unregistered": len(unregistered),
+            "results": results,
         })
     return out
 
