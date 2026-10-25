@@ -250,6 +250,93 @@
           "kills": 1
         }
       ]
+    },
+    {
+      "match": 2,
+      "date": "2026-10-25",
+      "map": "",
+      "results": [
+        {
+          "place": 1,
+          "slot": 22,
+          "kills": 20
+        },
+        {
+          "place": 2,
+          "slot": 17,
+          "kills": 4
+        },
+        {
+          "place": 3,
+          "slot": 20,
+          "kills": 3
+        },
+        {
+          "place": 4,
+          "slot": 4,
+          "kills": 26
+        },
+        {
+          "place": 5,
+          "slot": 23,
+          "kills": 11
+        },
+        {
+          "place": 6,
+          "slot": 21,
+          "kills": 6
+        },
+        {
+          "place": 7,
+          "slot": 5,
+          "kills": 2
+        },
+        {
+          "place": 8,
+          "slot": 9,
+          "kills": 5
+        },
+        {
+          "place": 9,
+          "slot": 2,
+          "kills": 0
+        },
+        {
+          "place": 10,
+          "slot": 18,
+          "kills": 4
+        },
+        {
+          "place": 11,
+          "slot": 19,
+          "kills": 4
+        },
+        {
+          "place": 12,
+          "slot": 7,
+          "kills": 2
+        },
+        {
+          "place": 13,
+          "slot": 3,
+          "kills": 0
+        },
+        {
+          "place": 14,
+          "slot": 24,
+          "kills": 1
+        },
+        {
+          "place": 15,
+          "slot": 6,
+          "kills": 0
+        },
+        {
+          "place": 16,
+          "slot": 8,
+          "kills": 0
+        }
+      ]
     }
   ]
 }
