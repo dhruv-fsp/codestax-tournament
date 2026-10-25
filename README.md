@@ -67,3 +67,10 @@ and the finals results. Add each finals match under `matches` with one entry per
 ```
 
 Points are the same as solo: placement points plus 1 per team finish.
+
+Quick entry from the result screen (one team per line: place, any player IGN or the team slot, finishes):
+
+```
+python -I -B src/finals_add.py --match 1 m1.txt --dry   # check only
+python -I -B src/finals_add.py --match 1 m1.txt         # save and rebuild
+```

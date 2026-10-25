@@ -820,12 +820,12 @@ const FIN_ROUNDS = 2;
 const teamOfPlayer = Object.fromEntries(FINALS.teams.flatMap((tm) => tm.members.map((id) => [id, tm.slot])));
 const finMatch = (n) => FINALS.matches.find((m) => m.match === n);
 const finRoundNumbers = () => range(Math.max(FIN_ROUNDS, ...FINALS.matches.map((m) => m.match)));
-let finRound = store.get("cs3-fin", "teams");
+let finRound = FINALS.matches.length ? "overall" : "teams";  // results first once there are any
 
 function finalsOptions() {
   return [
     { id: "teams", label: "Teams" },
-    { id: "overall", label: "Overall", disabled: !FINALS.matches.length },
+    { id: "overall", label: "Overall", disabled: !FINALS.teams.length },
     ...finRoundNumbers().map((i) => ({ id: String(i), label: `Match ${i}`, disabled: !finMatch(i) })),
   ];
 }
@@ -871,10 +871,10 @@ function currentFinals() {
   if (finRound === "teams") return null;
   const overall = finRound === "overall";
   const ms = overall ? FINALS.matches : [finMatch(Number(finRound))].filter(Boolean);
-  if (!ms.length) return null;
+  if (!ms.length && !overall) return null;
   const { played, dnp } = finStandings(ms);
   return {
-    ms, played, dnp, overall,
+    ms, played, dnp, overall, pending: !ms.length,
     title: overall ? "Squad Finals · Overall" : `Squad Finals · Match ${finRound}`,
     rounds: overall ? finRoundNumbers() : [Number(finRound)],
     dates: uniq(ms.map((m) => m.date).filter(Boolean)).sort(),
@@ -892,10 +892,10 @@ function frow(r, cur, q) {
   const rc = r.played && r.rank <= 3 ? `--rc:${MEDAL[r.rank]};` : "";
   const head = `<span class="rk">${r.played ? pad(r.rank) : "—"}</span>
     <span class="pl"><b>${teamName(r.t)} ${terrTag(r.t)}</b><small class="mem">${members(r.t).map((p) => highlight(p.ign, q)).join(" · ")}</small></span>`;
-  const tot = `<span class="tot">${r.played ? r.total : "DNP"}</span>`;
+  const tot = `<span class="tot">${r.played ? r.total : cur.pending ? "–" : "DNP"}</span>`;
   const style = `${rc}--tc:${TC[r.t.territory]};--n:${cur.rounds.length}`;
   if (cur.overall) {
-    return `<div class="prow fr o${r.played ? "" : " dnp"}" style="${style}">${head}${cur.rounds.map((n) => finRoundCell(r.t, n)).join("")}
+    return `<div class="prow fr o${r.played || cur.pending ? "" : " dnp"}" style="${style}">${head}${cur.rounds.map((n) => finRoundCell(r.t, n)).join("")}
       <span class="c hf ${r.kills ? "" : "muted"}">${r.played ? r.kills : "—"}</span>${tot}</div>`;
   }
   return `<div class="prow fr m${r.played ? "" : " dnp"}" style="${style}">${head}
@@ -960,7 +960,7 @@ function renderFinals() {
     html += `<div class="ptable">
       <div class="prow head ${cur.overall ? "o" : "m"}" style="--n:${cur.rounds.length}"><span>#</span><span>Team</span>${headCells}<span class="tot">Total</span></div>
       ${shownPlayed.map((r) => frow(r, cur, q)).join("")}
-      ${shownDnp.length ? `<div class="psep">Did not play · ${shownDnp.length}</div>${shownDnp.map((r) => frow(r, cur, q)).join("")}` : ""}
+      ${shownDnp.length ? `${cur.pending ? "" : `<div class="psep">Did not play · ${shownDnp.length}</div>`}${shownDnp.map((r) => frow(r, cur, q)).join("")}` : ""}
     </div>`;
   }
   $("out").innerHTML = html + LEGEND + `</section>`;
@@ -1032,7 +1032,7 @@ function finalsExport() {
     header = ["Rank", "Slot", "Territory", "Players", ...cur.rounds.flatMap((n) => [`M${n} Place`, `M${n} Fin`, `M${n} Pts`]),
               "WWCD", "Place Pts", "Finishes", "Total"];
     rows = [...cur.played.map((r) => [r.rank, ...lead(r), ...per(r.t), r.wwcd, r.placePts, r.kills, r.total]),
-            ...cur.dnp.map((r) => ["DNP", ...lead(r), ...per(r.t), "", "", "", ""])];
+            ...cur.dnp.map((r) => [cur.pending ? "–" : "DNP", ...lead(r), ...per(r.t), "", "", "", ""])];
     widths = [7, 6, 10, 60, ...cur.rounds.flatMap(() => [9, 8, 8]), 7, 10, 9, 8];
   }
   return { filename: `CodeStax-Finals-${cur.overall ? "Overall" : `Match${finRound}`}-Points.xlsx`, sheets: [{
@@ -1372,7 +1372,7 @@ $("tabs").addEventListener("click", (e) => {
 $("rounds").addEventListener("click", (e) => {
   const b = e.target.closest(".round");
   if (!b || b.disabled) return;
-  if (view === "finals") { finRound = b.dataset.round; store.set("cs3-fin", finRound); renderAll(); return; }
+  if (view === "finals") { finRound = b.dataset.round; renderAll(); return; }
   round = b.dataset.round;
   store.set("cs2-round", round);
   renderAll();
