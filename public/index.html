@@ -110,6 +110,9 @@
   .rounds { display: flex; gap: 6px; margin-top: 10px; overflow-x: auto; scrollbar-width: none; }
   .rounds::-webkit-scrollbar { display: none; }
   .rounds[hidden] { display: none; }
+  .fterr { margin-top: 6px; }
+  .fterr .round { min-width: 0; padding: 6px 14px; }
+  .fterr .round b { font-size: 15px; }
   .round {
     flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
     min-width: 128px; padding: 8px 16px 9px; cursor: pointer; text-align: left;
@@ -477,6 +480,7 @@
 
   <nav class="tabs" id="tabs" aria-label="Territory"></nav>
   <nav class="rounds" id="rounds" aria-label="Match"></nav>
+  <nav class="rounds fterr" id="fterr" aria-label="Territory filter" hidden></nav>
 
   <div class="bar">
     <label class="search">
@@ -664,6 +668,11 @@ function renderTabs() {
     })
     .join("");
   $("tabs").hidden = view === "finals";  // finals is one combined lobby
+  const ft = $("fterr");
+  ft.hidden = view !== "finals";
+  ft.innerHTML = view !== "finals" ? "" : [["all", "All teams"], ...ORDER.map((x) => [x, x])]
+    .map(([k, label]) => `<button class="round" data-terr="${k}" aria-pressed="${k === finTerr}" style="--tc:${TC[k]}"><b>${label}</b></button>`)
+    .join("");
   const r = $("rounds");
   const opts = view === "points" ? roundOptions() : view === "finals" ? finalsOptions() : [];
   const current = view === "finals" ? finRound : round;
@@ -821,6 +830,7 @@ const teamOfPlayer = Object.fromEntries(FINALS.teams.flatMap((tm) => tm.members.
 const finMatch = (n) => FINALS.matches.find((m) => m.match === n);
 const finRoundNumbers = () => range(Math.max(FIN_ROUNDS, ...FINALS.matches.map((m) => m.match)));
 let finRound = FINALS.matches.length ? "overall" : "teams";  // results first once there are any
+let finTerr = "all";  // finals filter: all teams, or one territory
 
 function finalsOptions() {
   return [
@@ -835,6 +845,8 @@ function fixFinRound() {
 fixFinRound();
 
 const members = (tm) => tm.members.map((id) => byId[id]);
+const finTeams = () => FINALS.teams.filter((tm) => finTerr === "all" || tm.territory === finTerr);
+const terrSuffix = () => (finTerr === "all" ? "" : ` · ${finTerr}`);
 const memberIgns = (tm) => members(tm).map((p) => p.ign);
 const teamName = (tm) => `Slot ${pad(tm.slot)}`;
 const teamMatches = (tm, q) => !q || String(tm.slot) === q || pad(tm.slot) === q || members(tm).some((p) => norm(p.ign).includes(q));
@@ -850,7 +862,7 @@ function teamCard(tm, q) {
 
 /* Same order as the solo table: total, placement points, finishes, best placement. */
 function finStandings(ms) {
-  const rows = FINALS.teams.map((tm) => {
+  const rows = finTeams().map((tm) => {
     const res = ms.slice().sort((a, b) => a.match - b.match).map((m) => m.results.find((r) => r.slot === tm.slot)).filter(Boolean);
     const placePts = sum(res.map((r) => pp(r.place)));
     const kills = sum(res.map((r) => r.kills));
@@ -875,7 +887,7 @@ function currentFinals() {
   const { played, dnp } = finStandings(ms);
   return {
     ms, played, dnp, overall, pending: !ms.length,
-    title: overall ? "Squad Finals · Overall" : `Squad Finals · Match ${finRound}`,
+    title: (overall ? "Squad Finals · Overall" : `Squad Finals · Match ${finRound}`) + terrSuffix(),
     rounds: overall ? finRoundNumbers() : [Number(finRound)],
     dates: uniq(ms.map((m) => m.date).filter(Boolean)).sort(),
   };
@@ -927,7 +939,7 @@ function renderFinals() {
   const q = query();
   if (finRound === "teams") {
     let html = "";
-    for (const terr of ORDER) {
+    for (const terr of ORDER.filter((x) => finTerr === "all" || x === finTerr)) {
       const list = FINALS.teams.filter((tm) => tm.territory === terr && teamMatches(tm, q));
       if (!list.length) continue;
       html += `<section class="group" style="--tc:${TC[terr]}">
@@ -937,7 +949,7 @@ function renderFinals() {
     if (!FINALS.teams.length) html = `<div class="group"><div class="empty">No teams yet</div></div>`;
     else if (!html) html = `<div class="group"><div class="empty">No team matches “${esc($("q").value.trim())}”</div></div>`;
     $("out").innerHTML = html;
-    $("count").innerHTML = `<b>${FINALS.teams.filter((tm) => teamMatches(tm, q)).length}</b> / ${FINALS.teams.length}`;
+    $("count").innerHTML = `<b>${finTeams().filter((tm) => teamMatches(tm, q)).length}</b> / ${finTeams().length}`;
     return;
   }
   const cur = currentFinals();
@@ -949,7 +961,7 @@ function renderFinals() {
   const shownPlayed = cur.played.filter((r) => teamMatches(r.t, q));
   const shownDnp = cur.dnp.filter((r) => teamMatches(r.t, q));
   let html = `<section class="group" style="--tc:var(--accent)">
-    <div class="ghead"><span class="stripe"></span><h2>Finals<em> · ${cur.overall ? "Overall" : `Match ${finRound}`}</em></h2><span class="rule"></span></div>`;
+    <div class="ghead"><span class="stripe"></span><h2>Finals<em> · ${cur.overall ? "Overall" : `Match ${finRound}`}${terrSuffix()}</em></h2><span class="rule"></span></div>`;
   if (!q && cur.played.length >= 3) html += `<div class="podium">${[cur.played[1], cur.played[0], cur.played[2]].map((r) => fpod(r, cur)).join("")}</div>`;
   if (!shownPlayed.length && !shownDnp.length) {
     html += `<div class="empty">No team matches “${esc($("q").value.trim())}”</div>`;
@@ -964,7 +976,7 @@ function renderFinals() {
     </div>`;
   }
   $("out").innerHTML = html + LEGEND + `</section>`;
-  $("count").innerHTML = `<b>${shownPlayed.length + shownDnp.length}</b> / ${FINALS.teams.length}`;
+  $("count").innerHTML = `<b>${shownPlayed.length + shownDnp.length}</b> / ${finTeams().length}`;
 }
 
 function finRoundSummary(r, cur) {
@@ -976,7 +988,7 @@ function finRoundSummary(r, cur) {
 
 function finalsText() {
   if (finRound === "teams") {
-    return [TOURNAMENT.name, "Squad Finals – Teams", ...ORDER.flatMap((terr) => ["", terr,
+    return [TOURNAMENT.name, "Squad Finals – Teams", ...ORDER.filter((x) => finTerr === "all" || x === finTerr).flatMap((terr) => ["", terr,
       ...FINALS.teams.filter((tm) => tm.territory === terr).map((tm) => `Slot ${pad(tm.slot)}: ${memberIgns(tm).join(", ")}`)])].join("\n");
   }
   const cur = currentFinals();
@@ -990,7 +1002,7 @@ function finalsText() {
 function finalsJson() {
   if (finRound === "teams") {
     return { tournament: TOURNAMENT.name, stage: "squad finals",
-      teams: FINALS.teams.map((tm) => ({ slot: tm.slot, territory: tm.territory, players: memberIgns(tm) })) };
+      teams: finTeams().map((tm) => ({ slot: tm.slot, territory: tm.territory, players: memberIgns(tm) })) };
   }
   const cur = currentFinals();
   if (!cur) return null;
@@ -1011,10 +1023,10 @@ function finalsJson() {
 
 function finalsExport() {
   if (finRound === "teams") {
-    return { filename: "CodeStax-Finals-Teams.xlsx", sheets: [{
-      name: "Teams", title: "Squad Finals – Teams", note: `${FINALS.teams.length} teams`,
+    return { filename: `CodeStax-Finals-Teams${finTerr === "all" ? "" : "-" + finTerr}.xlsx`, sheets: [{
+      name: "Teams", title: `Squad Finals – Teams${terrSuffix()}`, note: `${finTeams().length} teams`,
       header: ["Slot", "Territory", "Player 1", "Player 2", "Player 3", "Player 4"],
-      rows: FINALS.teams.map((tm) => [tm.slot, tm.territory, ...memberIgns(tm)]),
+      rows: finTeams().map((tm) => [tm.slot, tm.territory, ...memberIgns(tm)]),
       widths: [6, 10, 22, 22, 22, 22], boldCol: 0 }] };
   }
   const cur = currentFinals();
@@ -1035,7 +1047,7 @@ function finalsExport() {
             ...cur.dnp.map((r) => [cur.pending ? "–" : "DNP", ...lead(r), ...per(r.t), "", "", "", ""])];
     widths = [7, 6, 10, 60, ...cur.rounds.flatMap(() => [9, 8, 8]), 7, 10, 9, 8];
   }
-  return { filename: `CodeStax-Finals-${cur.overall ? "Overall" : `Match${finRound}`}-Points.xlsx`, sheets: [{
+  return { filename: `CodeStax-Finals-${cur.overall ? "Overall" : `Match${finRound}`}${finTerr === "all" ? "" : "-" + finTerr}-Points.xlsx`, sheets: [{
     name: cur.overall ? "Finals Overall" : `Finals M${finRound}`, title: `${cur.title} – Points Table`,
     note: POINTS_NOTE, header, rows, widths, boldCol: header.indexOf("Total") }] };
 }
@@ -1375,6 +1387,13 @@ $("rounds").addEventListener("click", (e) => {
   if (view === "finals") { finRound = b.dataset.round; renderAll(); return; }
   round = b.dataset.round;
   store.set("cs2-round", round);
+  renderAll();
+});
+
+$("fterr").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-terr]");
+  if (!b || b.dataset.terr === finTerr) return;
+  finTerr = b.dataset.terr;
   renderAll();
 });
 
